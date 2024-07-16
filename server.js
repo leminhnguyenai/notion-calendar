@@ -93,6 +93,7 @@ app
       } else {
         let existingData = JSON.parse(data);
         let length = existingData.length;
+        let calendarData = `BEGIN:VCALENDAR\nVERSION:2.0\nPROID:My calendar\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n\n`;
         for (let j = 0; j <= length - 1; j++) {
           const response = await notion.databases.query({
             database_id: existingData[j].databaseId,
@@ -105,7 +106,6 @@ app
           });
           console.log(JSON.stringify(response, null, 2));
           let eventsLength = response.results.length;
-          let calendarData = `BEGIN:VCALENDAR\nVERSION:2.0\nPROID:My calendar\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n\n`;
           for (let i = 0; i <= eventsLength - 1; i++) {
             calendarData +=
               newEvent(
@@ -117,12 +117,12 @@ app
                   .end
               ) + "\n\n";
           }
-          calendarData += `\nEND:VCALENDAR`;
           fs.writeFile("calendar.ics", calendarData, "utf8", (err) => {
             if (err) console.log(err);
             else console.log("Done !");
           });
         }
+        calendarData += `\nEND:VCALENDAR`;
       }
     });
   });
