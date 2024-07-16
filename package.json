@@ -14,7 +14,8 @@
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "ical.js": "^2.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
