@@ -1,0 +1,50 @@
+[
+  {
+    "uid": "8c7044b6-484e-40d0-afaa-b10b14f09d33",
+    "dtstamp": "2024-07-16T15:00:00.000Z",
+    "dtstart": "2024-07-16T21:00:00.000+07:00",
+    "dtend": "2024-07-16T22:30:00.000+07:00",
+    "summary": "[DONE] - Create an option to sync based on calendar site sending request",
+    "description": ""
+  },
+  {
+    "uid": "d6961f05-0862-4e15-b01d-395d8aa430bc",
+    "dtstamp": "2024-07-16T11:36:00.000Z",
+    "dtstart": "2024-07-19T08:00:00.000+07:00",
+    "dtend": "2024-07-19T11:00:00.000+07:00",
+    "summary": "[DONE] - Adding option to choose properties for description, name and “mark as done”",
+    "description": "“mark as done” is an option to mark an event as “Done” or remove it when the user finish with it, can be status, checkbox, …"
+  },
+  {
+    "uid": "b57c1fd9-f68c-410b-b232-2564ed6fcc90",
+    "dtstamp": "2024-07-16T14:36:00.000Z",
+    "dtstart": "2024-07-22T14:30:00.000+07:00",
+    "dtend": "2024-07-22T18:30:00.000+07:00",
+    "summary": "Modify back end code to handle situation where the request reach its maximum",
+    "description": ""
+  },
+  {
+    "uid": "ac857366-25ee-4891-a869-61fc99359eed",
+    "dtstamp": "2024-07-19T09:14:00.000Z",
+    "dtstart": "2024-07-22T20:00:00.000+07:00",
+    "dtend": "2024-07-22T21:00:00.000+07:00",
+    "summary": "Modify “mark done” features to make it optional",
+    "description": ""
+  },
+  {
+    "uid": "ee65f25d-db83-433f-a860-78b0f7fec72e",
+    "dtstamp": "2024-07-16T16:06:00.000Z",
+    "dtstart": "2024-07-22T21:00:00.000+07:00",
+    "dtend": "2024-07-22T21:30:00.000+07:00",
+    "summary": "Modify the update page to auto send request to update the calendar ",
+    "description": "For the “update” page that will be on the notion pages, which while being open will automatically send request to update the calendar in intervals"
+  },
+  {
+    "uid": "a5597142-4fd5-4f6a-86d0-663070f5113d",
+    "dtstamp": "2024-07-16T11:36:00.000Z",
+    "dtstart": "2024-07-22T21:30:00.000+07:00",
+    "dtend": "2024-07-22T22:30:00.000+07:00",
+    "summary": "Make the calendar accessible online",
+    "description": ""
+  }
+]

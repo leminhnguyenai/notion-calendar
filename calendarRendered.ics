@@ -1,0 +1,60 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PROID:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:8c7044b6-484e-40d0-afaa-b10b14f09d33
+DTSTAMP:20240716T150000Z
+DTSTART:20240716T140000Z
+DTEND:20240716T153000Z
+SUMMARY:[DONE] - Create an option to sync based on calendar site sending request
+DESCRIPTION:
+END:VEVENT
+
+BEGIN:VEVENT
+UID:d6961f05-0862-4e15-b01d-395d8aa430bc
+DTSTAMP:20240716T113600Z
+DTSTART:20240719T010000Z
+DTEND:20240719T040000Z
+SUMMARY:[DONE] - Adding option to choose properties for description, name and “mark as done”
+DESCRIPTION:“mark as done” is an option to mark an event as “Done” or remove it when the user finish with it, can be status, checkbox, …
+END:VEVENT
+
+BEGIN:VEVENT
+UID:b57c1fd9-f68c-410b-b232-2564ed6fcc90
+DTSTAMP:20240716T143600Z
+DTSTART:20240722T073000Z
+DTEND:20240722T113000Z
+SUMMARY:Modify back end code to handle situation where the request reach its maximum
+DESCRIPTION:
+END:VEVENT
+
+BEGIN:VEVENT
+UID:ac857366-25ee-4891-a869-61fc99359eed
+DTSTAMP:20240719T091400Z
+DTSTART:20240722T130000Z
+DTEND:20240722T140000Z
+SUMMARY:Modify “mark done” features to make it optional
+DESCRIPTION:
+END:VEVENT
+
+BEGIN:VEVENT
+UID:ee65f25d-db83-433f-a860-78b0f7fec72e
+DTSTAMP:20240716T160600Z
+DTSTART:20240722T140000Z
+DTEND:20240722T143000Z
+SUMMARY:Modify the update page to auto send request to update the calendar 
+DESCRIPTION:For the “update” page that will be on the notion pages, which while being open will automatically send request to update the calendar in intervals
+END:VEVENT
+
+BEGIN:VEVENT
+UID:a5597142-4fd5-4f6a-86d0-663070f5113d
+DTSTAMP:20240716T113600Z
+DTSTART:20240722T143000Z
+DTEND:20240722T153000Z
+SUMMARY:Make the calendar accessible online
+DESCRIPTION:
+END:VEVENT
+
+END:VCALENDAR

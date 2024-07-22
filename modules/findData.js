@@ -85,4 +85,39 @@ function findData(object, name) {
   });
 }
 
-module.exports = findData;
+function doneStatus(object, name, id) {
+  return new Promise((resolve, reject) => {
+    const property = object.properties[name];
+    switch (property.type) {
+      case "checkbox":
+        if (property.checkbox == true) {
+          resolve("[DONE] - ");
+          break;
+        } else {
+          resolve("");
+          break;
+        }
+      case "select":
+        if (property[property.type].id == id) {
+          resolve("[DONE] - ");
+          break;
+        } else {
+          resolve("");
+          break;
+        }
+      case "status":
+        if (property[property.type].id == id) {
+          resolve("[DONE] - ");
+          break;
+        } else {
+          resolve("");
+          break;
+        }
+    }
+  });
+}
+
+module.exports = {
+  findData,
+  doneStatus,
+};

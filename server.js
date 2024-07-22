@@ -3,8 +3,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const path = require("path");
 const fs = require("fs");
-const newEvent = require("./modules/createEvent.js");
-const findData = require("./modules/findData.js");
+const { findData, doneStatus } = require("./modules/findData.js");
+const { renderJSON, mergeCalendar } = require("./modules/jsonTool.js");
 require("dotenv").config();
 const { Client } = require("@notionhq/client");
 const notion = new Client({ auth: process.env.NOTION_KEY });
@@ -81,7 +81,7 @@ app.post("/connection", async (req, res) => {
 });
 
 // Hosting calendar
-app.get("/calendar.ics", bodyParser.json(), (req, res) => {
+app.get("/calendarRendered.ics", bodyParser.json(), (req, res) => {
   // Update the calendar whenever the calendar app send a request
   fs.readFile("connections.json", "utf8", async (err, data) => {
     if (err) {
@@ -90,7 +90,7 @@ app.get("/calendar.ics", bodyParser.json(), (req, res) => {
     } else {
       let existingData = JSON.parse(data);
       let length = existingData.length;
-      let calendarData = `BEGIN:VCALENDAR\nVERSION:2.0\nPROID:My calendar\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n\n`;
+      let calendarData = [];
       for (let j = 0; j <= length - 1; j++) {
         const response = await notion.databases.query({
           database_id: existingData[j].databaseId,
@@ -100,77 +100,66 @@ app.get("/calendar.ics", bodyParser.json(), (req, res) => {
               is_not_empty: true,
             },
           },
+          sorts: [
+            {
+              property: existingData[j].dateColumn,
+              direction: "ascending",
+            },
+          ],
         });
         console.log(JSON.stringify(response, null, 2));
         let eventsLength = response.results.length;
         for (let i = 0; i <= eventsLength - 1; i++) {
-          calendarData +=
-            newEvent(
-              await (async () => {
-                if (
-                  response.results[i].properties[existingData[j].doneMethod]
-                    .type != "checkbox"
-                ) {
-                  if (
-                    response.results[i].properties[existingData[j].doneMethod][
-                      response.results[i].properties[existingData[j].doneMethod]
-                        .type
-                    ].id == existingData[j].doneMethodOption
-                  ) {
-                    return (
-                      "[DONE] - " +
-                      (await findData(
-                        response.results[i],
-                        existingData[j].nameColumn
-                      ))
-                    );
-                  } else
-                    return await findData(
-                      response.results[i],
-                      existingData[j].nameColumn
-                    );
-                } else {
-                  if (
-                    response.results[i].properties[existingData[j].doneMethod]
-                      .checkbox == true
-                  ) {
-                    return (
-                      "[DONE] - " +
-                      (await findData(
-                        response.results[i],
-                        existingData[j].nameColumn
-                      ))
-                    );
-                  } else
-                    return await findData(
-                      response.results[i],
-                      existingData[j].nameColumn
-                    );
-                }
-              })(),
-              await findData(
-                response.results[i],
-                existingData[j].descriptionColumn
-              ),
+          calendarData.push({
+            uid: response.results[i].id,
+            dtstamp: response.results[i].created_time,
+            dtstart:
               response.results[i].properties[existingData[j].dateColumn].date
                 .start,
+            dtend:
               response.results[i].properties[existingData[j].dateColumn].date
-                .end
-            ) + "\n\n";
+                .end,
+            summary:
+              (await doneStatus(
+                response.results[i],
+                existingData[j].doneMethod,
+                existingData[j].doneMethodOption
+              )) +
+              (await findData(response.results[i], existingData[j].nameColumn)),
+            description: await findData(
+              response.results[i],
+              existingData[j].descriptionColumn
+            ),
+          });
         }
       }
-      calendarData += `\nEND:VCALENDAR`;
       console.log(calendarData);
-      fs.writeFile("calendar.ics", calendarData, "utf8", (err) => {
-        if (err) console.log(err);
-        else {
-          console.log("Done !");
-          const icsPath = path.join(__dirname, "calendar.ics");
-          res.setHeader("Content-Type", "text/calendar");
-          console.log("Here");
-          res.sendFile(icsPath);
+      fs.writeFile(
+        "calendar.json",
+        JSON.stringify(calendarData, null, 2),
+        "utf8",
+        async (err) => {
+          if (err) console.log(err);
+          else {
+            console.log("Done !");
+            fs.writeFile(
+              "calendarRendered.ics",
+              await renderJSON(calendarData),
+              "utf8",
+              (err) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  const icsPath = path.join(__dirname, "calendarRendered.ics");
+                  res.setHeader("Content-Type", "text/calendar");
+                  console.log("Here");
+                  res.sendFile(icsPath);
+                }
+              }
+            );
+          }
         }
-      });
+      );
     }
   });
 });
@@ -190,7 +179,7 @@ app
       } else {
         let existingData = JSON.parse(data);
         let length = existingData.length;
-        let calendarData = `BEGIN:VCALENDAR\nVERSION:2.0\nPROID:My calendar\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n\n`;
+        let calendarData = [];
         for (let j = 0; j <= length - 1; j++) {
           const response = await notion.databases.query({
             database_id: existingData[j].databaseId,
@@ -200,74 +189,64 @@ app
                 is_not_empty: true,
               },
             },
+            sorts: [
+              {
+                property: existingData[j].dateColumn,
+                direction: "ascending",
+              },
+            ],
           });
           console.log(JSON.stringify(response, null, 2));
           let eventsLength = response.results.length;
           for (let i = 0; i <= eventsLength - 1; i++) {
-            calendarData +=
-              newEvent(
-                await (async () => {
-                  if (
-                    response.results[i].properties[existingData[j].doneMethod]
-                      .type != "checkbox"
-                  ) {
-                    if (
-                      response.results[i].properties[
-                        existingData[j].doneMethod
-                      ][
-                        response.results[i].properties[
-                          existingData[j].doneMethod
-                        ].type
-                      ].id == existingData[j].doneMethodOption
-                    ) {
-                      return (
-                        "[DONE] - " +
-                        (await findData(
-                          response.results[i],
-                          existingData[j].nameColumn
-                        ))
-                      );
-                    } else
-                      return await findData(
-                        response.results[i],
-                        existingData[j].nameColumn
-                      );
-                  } else {
-                    if (
-                      response.results[i].properties[existingData[j].doneMethod]
-                        .checkbox == true
-                    ) {
-                      return (
-                        "[DONE] - " +
-                        (await findData(
-                          response.results[i],
-                          existingData[j].nameColumn
-                        ))
-                      );
-                    } else
-                      return await findData(
-                        response.results[i],
-                        existingData[j].nameColumn
-                      );
-                  }
-                })(),
-                await findData(
-                  response.results[i],
-                  existingData[j].descriptionColumn
-                ),
+            calendarData.push({
+              uid: response.results[i].id,
+              dtstamp: response.results[i].created_time,
+              dtstart:
                 response.results[i].properties[existingData[j].dateColumn].date
                   .start,
+              dtend:
                 response.results[i].properties[existingData[j].dateColumn].date
-                  .end
-              ) + "\n\n";
+                  .end,
+              summary:
+                (await doneStatus(
+                  response.results[i],
+                  existingData[j].doneMethod,
+                  existingData[j].doneMethodOption
+                )) +
+                (await findData(
+                  response.results[i],
+                  existingData[j].nameColumn
+                )),
+              description: await findData(
+                response.results[i],
+                existingData[j].descriptionColumn
+              ),
+            });
           }
         }
-        calendarData += `\nEND:VCALENDAR`;
         console.log(calendarData);
-        fs.writeFile("calendar.ics", calendarData, "utf8", (err) => {
-          if (err) console.log(err);
-          else console.log("Done !");
-        });
+        fs.writeFile(
+          "calendar.json",
+          JSON.stringify(calendarData, null, 2),
+          "utf8",
+          async (err) => {
+            if (err) console.log(err);
+            else {
+              fs.writeFile(
+                "calendarRendered.ics",
+                await renderJSON(calendarData),
+                "utf8",
+                (err) => {
+                  if (err) {
+                    console.log(err);
+                  }
+                }
+              );
+              console.log("Done !");
+            }
+          }
+        );
       }
     });
   });
