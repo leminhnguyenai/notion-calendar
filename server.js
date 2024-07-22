@@ -134,32 +134,44 @@ app.get("/calendarRendered.ics", bodyParser.json(), (req, res) => {
         }
       }
       console.log(calendarData);
-      fs.writeFile(
-        "calendar.json",
-        JSON.stringify(calendarData, null, 2),
-        "utf8",
-        async (err) => {
-          if (err) console.log(err);
-          else {
-            console.log("Done !");
-            fs.writeFile(
-              "calendarRendered.ics",
-              await renderJSON(calendarData),
-              "utf8",
-              (err) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  const icsPath = path.join(__dirname, "calendarRendered.ics");
-                  res.setHeader("Content-Type", "text/calendar");
-                  console.log("Here");
-                  res.sendFile(icsPath);
-                }
+      fs.readFile("./calendar.json", "utf8", async (err, data) => {
+        if (err) {
+          console.log("error reading file");
+          return;
+        } else {
+          fs.writeFile(
+            "calendar.json",
+            JSON.stringify(mergeCalendar(data, calendarData), null, 2),
+            "utf8",
+            async (err) => {
+              if (err) {
+                console.log("error reading file");
+                return;
+              } else {
+                fs.writeFile(
+                  "calendarRendered.ics",
+                  await renderJSON(mergeCalendar(data, calendarData)),
+                  "utf8",
+                  (err) => {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                      console.log("Done !");
+                      const icsPath = path.join(
+                        __dirname,
+                        "calendarRendered.ics"
+                      );
+                      res.setHeader("Content-Type", "text/calendar");
+                      console.log("Here");
+                      res.sendFile(icsPath);
+                    }
+                  }
+                );
               }
-            );
-          }
+            }
+          );
         }
-      );
+      });
     }
   });
 });
@@ -226,27 +238,44 @@ app
           }
         }
         console.log(calendarData);
-        fs.writeFile(
-          "calendar.json",
-          JSON.stringify(calendarData, null, 2),
-          "utf8",
-          async (err) => {
-            if (err) console.log(err);
-            else {
-              fs.writeFile(
-                "calendarRendered.ics",
-                await renderJSON(calendarData),
-                "utf8",
-                (err) => {
-                  if (err) {
-                    console.log(err);
-                  }
+        fs.readFile("./calendar.json", "utf8", async (err, data) => {
+          if (err) {
+            console.log("error reading file");
+            return;
+          } else {
+            fs.writeFile(
+              "calendar.json",
+              JSON.stringify(mergeCalendar(data, calendarData), null, 2),
+              "utf8",
+              async (err) => {
+                if (err) {
+                  console.log("error reading file");
+                  return;
+                } else {
+                  fs.writeFile(
+                    "calendarRendered.ics",
+                    await renderJSON(mergeCalendar(data, calendarData)),
+                    "utf8",
+                    (err) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        console.log("Done !");
+                        const icsPath = path.join(
+                          __dirname,
+                          "calendarRendered.ics"
+                        );
+                        res.setHeader("Content-Type", "text/calendar");
+                        console.log("Here");
+                        res.sendFile(icsPath);
+                      }
+                    }
+                  );
                 }
-              );
-              console.log("Done !");
-            }
+              }
+            );
           }
-        );
+        });
       }
     });
   });

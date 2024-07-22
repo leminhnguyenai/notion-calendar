@@ -20,7 +20,7 @@
     "dtstamp": "2024-07-16T14:36:00.000Z",
     "dtstart": "2024-07-22T14:30:00.000+07:00",
     "dtend": "2024-07-22T18:30:00.000+07:00",
-    "summary": "Modify back end code to handle situation where the request reach its maximum",
+    "summary": "[DONE] - Modify back end code to handle situation where the request reach its maximum",
     "description": ""
   },
   {
@@ -46,5 +46,13 @@
     "dtend": "2024-07-22T22:30:00.000+07:00",
     "summary": "Make the calendar accessible online",
     "description": ""
+  },
+  {
+    "uid": "bb802f76-277e-40ea-923c-06d4b8285596",
+    "dtstamp": "2024-07-22T10:06:00.000Z",
+    "dtstart": "2024-07-23T08:00:00.000+07:00",
+    "dtend": "2024-07-23T08:45:00.000+07:00",
+    "summary": "Optimize the update calendar process",
+    "description": "If the calendar is up to date then when the calendar app send a request, the calendar don’t need to do another search again"
   }
 ]

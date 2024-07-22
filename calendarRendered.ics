@@ -26,7 +26,7 @@ UID:b57c1fd9-f68c-410b-b232-2564ed6fcc90
 DTSTAMP:20240716T143600Z
 DTSTART:20240722T073000Z
 DTEND:20240722T113000Z
-SUMMARY:Modify back end code to handle situation where the request reach its maximum
+SUMMARY:[DONE] - Modify back end code to handle situation where the request reach its maximum
 DESCRIPTION:
 END:VEVENT
 
@@ -55,6 +55,15 @@ DTSTART:20240722T143000Z
 DTEND:20240722T153000Z
 SUMMARY:Make the calendar accessible online
 DESCRIPTION:
+END:VEVENT
+
+BEGIN:VEVENT
+UID:bb802f76-277e-40ea-923c-06d4b8285596
+DTSTAMP:20240722T100600Z
+DTSTART:20240723T010000Z
+DTEND:20240723T014500Z
+SUMMARY:Optimize the update calendar process
+DESCRIPTION:If the calendar is up to date then when the calendar app send a request, the calendar don’t need to do another search again
 END:VEVENT
 
 END:VCALENDAR
