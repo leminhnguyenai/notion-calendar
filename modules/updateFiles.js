@@ -1,37 +1,24 @@
 const fs = require("fs");
 
 async function updateFiles(file_path, callback) {
-  fs.readFile(file_path, "utf8", async (err, data) => {
-    if (err) {
-      if (err.code == "ENOENT") {
-        let oldData = {};
-        let newData = await callback(oldData);
-        fs.writeFile(
-          file_path,
-          JSON.stringify(newData, null, 2),
-          "utf8",
-          (err) => {
-            if (err) {
-              console.log(`Error: ${err}`);
-            }
-          }
-        );
-      }
-    } else {
-      let oldData = JSON.parse(data);
-      let newData = await callback(oldData);
-      fs.writeFile(
-        file_path,
-        JSON.stringify(newData, null, 2),
-        "utf8",
-        (err) => {
-          if (err) {
-            console.log(`Error: ${err}`);
-          }
+  try {
+    let data = fs.readFileSync(file_path, "utf8");
+    data = JSON.parse(data);
+    let newData = await callback(data);
+    fs.writeFileSync(file_path, JSON.stringify(newData, null, 2), "utf8");
+  } catch (err) {
+    if (err.code == "ENOENT") {
+      fs.writeFile(file_path, JSON.stringify(await callback(err.code), null, 2), "utf8", (error) => {
+        if (error) {
+          console.error(error);
+          throw error;
         }
-      );
+      });
+    } else {
+      console.error(err);
+      throw err;
     }
-  });
+  }
 }
 
 module.exports = updateFiles;
