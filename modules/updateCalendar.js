@@ -1,7 +1,5 @@
-const { type } = require("os");
 const { authorize, addEvent, updateEvent, deleteEvent } = require("../modules/googleCalendarAPICustomFuncs.js");
 const path = require("path");
-const e = require("express-status-monitor");
 const CREDENTIALS_PATH = path.join(__dirname, "../oauth/credentials.json");
 const TOKEN_PATH = path.join(__dirname, "../oauth/token.json");
 const SCOPES = [

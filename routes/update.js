@@ -7,7 +7,6 @@ const updateFiles = require("../modules/updateFiles.js");
 const syncCalendar = require(".././modules/updateCalendar.js");
 const { findData, doneStatus } = require(".././modules/findData.js");
 const { authorize, getEvents } = require(".././modules/googleCalendarAPICustomFuncs.js");
-const exp = require("constants");
 require("dotenv").config();
 const { Client } = require("@notionhq/client");
 const notion = new Client({ auth: process.env.NOTION_KEY });
@@ -28,7 +27,7 @@ function startInterval(refreshRate) {
   let count = 0;
   intervalId = setInterval(() => {
     if (count % refreshRate == 0) {
-      axios.get(`http://localhost:${port}/update`).catch((err) => {
+      axios.get(`http://localhost:${port}/api/update`).catch((err) => {
         console.error(err);
       });
     }
@@ -42,6 +41,8 @@ function stopInterval() {
   console.log("Interval stopped");
   intervalId = null;
 }
+
+router.use(express.json());
 
 router.get("/", async (req, res) => {
   // Get the connections list
@@ -82,7 +83,11 @@ router.get("/", async (req, res) => {
       try {
         notionCalEventsList.push({
           page_id: notionData.results[i].id,
-          summary: await findData(notionData.results[i], connection.nameColumn),
+          summary: `${await doneStatus(
+            notionData.results[i],
+            connection.doneMethod,
+            connection.doneMethodOptionId
+          )}${await findData(notionData.results[i], connection.nameColumn)}`,
           description: await findData(notionData.results[i], connection.descriptionColumn),
           created_time: notionData.results[i].created_time,
           start_date: notionData.results[i].properties[connection.dateColumn].date.start,

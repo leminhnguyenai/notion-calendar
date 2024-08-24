@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
 // Adding new connections to the list
 router.post("/", async (req, res) => {
   try {
-    await axios.post(`http://localhost:6060/update`, {
+    await axios.post(`http://localhost:6060/api/update`, {
       command: "stop",
     });
     const connection = req.body;
@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
     console.error(err);
     res.send(`Error sending file: ${err}`);
   } finally {
-    await axios.post(`http://localhost:6060/update`, {
+    await axios.post(`http://localhost:6060/api/update`, {
       command: "start",
     });
   }
@@ -59,24 +59,26 @@ router.post("/", async (req, res) => {
 // Update a connection
 router.patch("/", async (req, res) => {
   try {
-    await axios.post(`http://localhost:6060/update`, {
+    await axios.post(`http://localhost:6060/api/update`, {
       command: "stop",
     });
     let newConnection = req.body;
+    console.log(req.body);
     await updateFiles("connections.json", async (data) => {
       if (data == "ENOENT" || !Array.isArray(data)) data = [];
       let newData = data.map((connection) => {
-        if (connection.calendarId == newConnection.calendarId && !equal(connection, newConnection)) {
+        if (connection.calendarId == newConnection.calendarId) {
           return newConnection;
-        }
+        } else return connection;
       });
+      res.status(200).send("Update successfully");
       return newData;
     });
   } catch (err) {
     console.error(err);
-    res.send(`Error sending file: ${err}`);
+    res.status(404).send(`Error sending file: ${err}`);
   } finally {
-    await axios.post(`http://localhost:6060/update`, {
+    await axios.post(`http://localhost:6060/api/update`, {
       command: "start",
     });
   }
@@ -90,10 +92,10 @@ router.delete("/", async (req, res) => {
     let deleteConnectionIndex = connections.findIndex((connection) => connection.calendarId == calendarId);
     if (deleteConnectionIndex == -1) {
       console.log("No connection found");
-      res.send("No connection found");
+      res.status(404).send("No connection found");
     } else {
       try {
-        await axios.post(`http://localhost:6060/update`, {
+        await axios.post(`http://localhost:6060/api/update`, {
           command: "stop",
         });
         let auth = await authorize(CREDENTIALS_PATH, TOKEN_PATH, SCOPES);
@@ -108,12 +110,12 @@ router.delete("/", async (req, res) => {
         }
         connections.splice(deleteConnectionIndex, 1);
         console.log("Delete successfully");
-        res.send("Delete successfully");
+        res.status(200).send("Delete successfully");
       } catch (err) {
-        console.error("Error caught:", err);
-        res.send(`Error: ${err}`);
+        console.log("Error caught:", err);
+        res.status(502).send(`Error: ${err}`);
       } finally {
-        await axios.post(`http://localhost:6060/update`, {
+        await axios.post(`http://localhost:6060/api/update`, {
           command: "start",
         });
       }

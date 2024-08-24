@@ -27,10 +27,7 @@ function findData(object, name) {
           break;
         case "formula":
           let content =
-            property.formula.boolean ||
-            property.formula.date ||
-            property.formula.number ||
-            property.formula.string;
+            property.formula.boolean || property.formula.date || property.formula.number || property.formula.string;
           if (content) resolve(content);
           else if (content === null) resolve("");
           else reject("Failed to fetch formula content");
@@ -53,21 +50,11 @@ function findData(object, name) {
           break;
         case "multi_select":
           if (property.multi_select.length === 0) resolve("");
-          else
-            resolve(
-              property.multi_select.options
-                .map((option) => option.name)
-                .join(", ")
-            );
+          else resolve(property.multi_select.options.map((option) => option.name).join(", "));
           break;
         case "people":
           if (property.people.length === 0) resolve("");
-          else
-            resolve(
-              name +
-                ": " +
-                property.people.map((person) => person.name).join(", ")
-            );
+          else resolve(name + ": " + property.people.map((person) => person.name).join(", "));
           break;
         case "phone_number":
           if (property.phone_number === null) resolve("");
@@ -93,7 +80,7 @@ function doneStatus(object, name, id) {
       switch (property.type) {
         case "checkbox":
           if (property.checkbox == true) {
-            resolve("[DONE] - ");
+            resolve("✅ ");
             break;
           } else {
             resolve("");
@@ -101,7 +88,7 @@ function doneStatus(object, name, id) {
           }
         case "select":
           if (property[property.type].id == id) {
-            resolve("[DONE] - ");
+            resolve("✅ ");
             break;
           } else {
             resolve("");
@@ -109,7 +96,7 @@ function doneStatus(object, name, id) {
           }
         case "status":
           if (property[property.type].id == id) {
-            resolve("[DONE] - ");
+            resolve("✅ ");
             break;
           } else {
             resolve("");

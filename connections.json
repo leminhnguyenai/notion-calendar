@@ -1,12 +1,17 @@
 [
   {
+    "calendarId": "4549a835ad45c7321cee9857ceaba09b7be54b1aafe2e631d2b12394034c60bd@group.calendar.google.com",
     "databaseName": "📋 Notion tasks ",
     "databaseId": "fe62e687-5fa5-4b2f-b8cb-8e4bd4a1eb65",
-    "calendarId": "4549a835ad45c7321cee9857ceaba09b7be54b1aafe2e631d2b12394034c60bd@group.calendar.google.com",
     "dateColumn": "Due Date",
+    "dateColumnId": "eD%3DI",
     "nameColumn": "Name",
+    "nameColumnId": "title",
     "descriptionColumn": "Notes",
+    "descriptionColumnId": "Jg~E",
     "doneMethod": "Status",
-    "doneMethodOption": "Jqhn"
+    "doneMethodId": "F%3FJa",
+    "doneMethodOptionName": "Done",
+    "doneMethodOptionId": "Jqhn"
   }
 ]
