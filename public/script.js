@@ -426,38 +426,51 @@ app.component("configuration-tab", {
 });
 app.component("custom-select", {
   template: `
-  <div ref="dropdown" class="flex flex-col w-64 bg-[#242424] overflow-hidden rounded-md outline outline-1 outline-[#585858]">
-    <div :class="{ 'brightness-125' : visibility}"
+  <div ref="dropdown" class="flex flex-col w-64 bg-[#242424] overflow-hidden rounded-md outline outline-1 outline-[#585858] cursor-pointer">
+    <div
+      :class="{ 'brightness-125 z-30': visibility }"
       class="relative select-none h-6 w-64 bg-[#242424] flex items-center px-2 py-4 text-xs transition-all duration-300 hover:bg-[#202020]"
-      @click="changeVisibility()">
-          <p class="absolute text-slate-100">{{ localselected.name }}</p>
-          <span :class="{ 'rotate-180': visibility }" class="absolute right-0 text-slate-100 transition-all duration-200 material-symbols-outlined"> arrow_drop_down </span>
+      @click="changeVisibility"
+    >
+      <p class="absolute text-slate-100">{{ localSelected.name }}</p>
+      <span
+        :class="{ 'rotate-180': visibility }"
+        class="absolute right-0 text-slate-100 transition-all duration-200 material-symbols-outlined"
+      >
+        arrow_drop_down
+      </span>
     </div>
-    <div v-if="localoptions.length > 0" :class="{ 'rounded-md outline outline-1 outline-[#585858] z-20 brightness-125': visibility }" class="absolute translate-y-9 flex flex-col max-h-64 w-64 overflow-y-auto overflow-x-hidden">
+    <div
+    :class="[
+          { 'translate-y-9 opacity-100': localOptions.length > 0 && visibility },
+          { 'rounded-md outline outline-1 outline-[#585858] z-20 brightness-125': visibility },
+          'transition-all ease-in-out duration-300'
+        ]"
+      class="absolute translate-y-5 flex flex-col max-h-48 w-64 opacity-0 overflow-y-auto"
+    >
       <div
         class="relative select-none h-6 w-64 text-slate-100 bg-[#242424] flex items-center px-2 py-4 text-xs transition-all duration-300 hover:bg-[#202020]"
-        v-for="(option, index) in localoptions"
+        v-for="(option, index) in localOptions"
+        :key="index"
         v-if="visibility"
         @click="
           changeVisibility();
-          localselected = option;
-          ">
+          localSelected = option;
+        "
+      >
         {{ option.name }}
       </div>
     </div>
   </div>
+
   `,
   props: ["optionsvalue", "defaultvalue"],
   data() {
     return {
-      localselected: this.$props.defaultvalue,
+      localSelected: this.$props.defaultvalue,
       visibility: false,
+      localOptions: this.$props.optionsvalue,
     };
-  },
-  computed: {
-    localoptions() {
-      return this.optionsvalue;
-    },
   },
   methods: {
     changeVisibility() {
@@ -466,13 +479,6 @@ app.component("custom-select", {
     handleClickOutside(event) {
       if (!this.$refs.dropdown.contains(event.target)) {
         this.visibility = false;
-      }
-    },
-  },
-  watch: {
-    localselected(newData, oldData) {
-      if (newData != oldData) {
-        this.$emit("selected", this.localselected);
       }
     },
   },

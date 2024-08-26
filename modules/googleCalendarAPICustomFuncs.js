@@ -1,9 +1,6 @@
 const fs = require("fs").promises;
-const path = require("path");
-const process = require("process");
 const { authenticate } = require("@google-cloud/local-auth");
 const { google } = require("googleapis");
-const e = require("express");
 
 // Load saved credentials
 async function loadSavedCredentialsIfExist(token_path) {

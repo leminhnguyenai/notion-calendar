@@ -151,6 +151,7 @@ router.post("/", async (req, res) => {
         console.error(err);
       } else {
         let refreshRate = JSON.parse(data).refreshRate;
+        stopInterval();
         startInterval(refreshRate);
         res.send("Interval started");
       }
