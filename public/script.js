@@ -3,21 +3,43 @@ let app = Vue.createApp({
     return {
       connectionList: [],
       notiondata: "",
+      open_setting: false,
       create_con: false,
       load_connection: false,
       load_notiondata: false,
+      refresh_rate: 0,
+      warning_message: "",
     };
   },
   computed: {
     blank_connection() {
       return {
         calendarId: "",
-        database: "",
-        date: "",
-        name: "",
-        description: "",
-        doneMethod: "",
-        doneMethodOption: "",
+        calendarName: "",
+        database: {
+          name: "",
+          value: "",
+        },
+        date: {
+          name: "",
+          value: "",
+        },
+        name: {
+          name: "",
+          value: "",
+        },
+        description: {
+          name: "",
+          value: "",
+        },
+        doneMethod: {
+          name: "",
+          value: "",
+        },
+        doneMethodOption: {
+          name: "",
+          value: "",
+        },
       };
     },
   },
@@ -25,23 +47,62 @@ let app = Vue.createApp({
     create_new_con() {
       if (this.load_connection == true && this.load_notiondata == true) this.create_con = !this.create_con;
     },
+    update_config() {
+      let valid = true;
+      if (isNaN(this.refresh_rate)) {
+        this.warning_message = "The input must be a number";
+        valid = false;
+      }
+      if (valid) {
+        fetch("http://localhost:6060/api/config", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            refreshRate: this.refresh_rate * 1000,
+          }),
+        })
+          .then((res) => {
+            if (res.status == 200) this.open_setting = !this.open_setting;
+            else throw new Error("Failed update config");
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    },
   },
   watch: {
-    connectionList(newData, oldData) {
+    connectionList() {
       (this.load_connection = true), console.log("Connection data uploaded");
     },
-    notiondata(newData, oldData) {
+    notiondata() {
       (this.load_notiondata = true), console.log("NotionData uploaded");
+    },
+    refresh_rate(data) {
+      console.log(data);
     },
   },
   mounted() {
-    fetch("http://localhost:6060/api/reformat/connections", {
+    fetch("http://localhost:6060/api/connections", {
       method: "GET",
     })
       .then((res) => res.json())
       .then((data) => {
-        this.connectionList = JSON.parse(JSON.stringify(data, null, 2));
-        console.log(this.connectionList);
+        this.connectionList = JSON.parse(JSON.stringify(data));
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+    fetch("http://localhost:6060/api/config", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        let refreshRate = JSON.parse(JSON.stringify(data)).refreshRate;
+        this.refresh_rate = refreshRate / 1000;
       })
       .catch((err) => {
         console.error(err);
@@ -52,7 +113,7 @@ let app = Vue.createApp({
     })
       .then((res) => res.json())
       .then((data) => {
-        this.notiondata = JSON.parse(JSON.stringify(data, null, 2));
+        this.notiondata = JSON.parse(JSON.stringify(data));
       })
       .catch((err) => {
         console.error(err);
@@ -63,15 +124,16 @@ app.component("addbtn", {
   template: `
   <button
   type="button"
-  class="fixed size-14 right-0 bottom-0 m-4 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-gray-300 active:bg-gray-350 active:scale-95 shadow-md">
+  class="fixed bg-gray-100 size-14 right-0 bottom-0 m-4 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-gray-300 active:bg-gray-350 active:scale-95 shadow-md">
   <span class="text-4xl text-[#202020] material-symbols-outlined"> add </span>
 </button>
   `,
 });
 app.component("connection", {
   template: `
-  <div @click="open_tab" class="bg-[#FF8225] col-span-1 h-32 rounded-md select-none cursor-pointer transition-all duration-200 hover:bg-[#FF8225]/75 active:bg-[#FF8225]/50 active:scale-95">
-    <p class="relative text-slate-100 text-lg mx-4 my-2"> {{ localconnection.database.name }} </p>
+  <div @click="open_tab" class="relative flex bg-[#FF8225] col-span-1 h-32 rounded-md select-none cursor-pointer transition-all duration-200 hover:bg-[#FF8225]/75 active:bg-[#FF8225]/50 active:scale-95">
+    <p class="relative text-slate-100 text-lg mx-4 my-2"> {{ localconnection.calendarName }} </p>
+    <p class="absolute bottom-3 right-3 text-slate-100 text-xs">{{ localconnection.database.name }}</p>
   </div>
   <configuration-tab v-if="open_config_tab" :localconnection="connection" :localnotiondata="notion_data" :new_con="false" @tab="(tab) => this.open_config_tab = tab"></configuration-tab>
   `,
@@ -103,9 +165,9 @@ app.component("configuration-tab", {
   template: `
   <div
       v-if="!close_tab"
-      class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] size-4/5 rounded-lg shadow-md select-none flex"
+      class="flex flex-col fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] size-4/5 rounded-lg shadow-md select-none overflow-y-auto"
   >
-      <div class="grid grid-cols-3 gap-4 mx-4 my-8 h-4/6 w-full">
+      <div class="relative grid grid-cols-3 gap-4 mx-4 my-8 h-4/6">
           <div class="col-span-1 h-full bg-[#545454]/40 rounded-md">
               <p class="relative mx-4 my-2 text-slate-100">Database</p>
               <custom-select
@@ -114,6 +176,12 @@ app.component("configuration-tab", {
                   :optionsvalue="database_options_list"
                   @selected="(selected)=>updateForm(selected, 'database')"
               ></custom-select>
+              <p class="relative mx-4 my-2 text-slate-100">Calendar name</p>
+              <custom-input 
+                class="relative mx-4 my-2 text-slate-100"
+                v-model="this.modified_connection.calendarName"
+                :default_name="this.new_connection ? this.modified_connection.database.name : ''"
+              />
           </div>
           <div class="col-span-1 h-full bg-[#545454]/40 rounded-md">
               <span
@@ -157,14 +225,14 @@ app.component("configuration-tab", {
                   <p class="relative mx-4 my-2 text-slate-100">Mark as done</p>
                   <custom-select
                       class="mx-4 my-2"
-                      :defaultvalue="new_connection ? default_empty_option : localconnection.doneMethod"
+                      :defaultvalue="defaultOptionalOption(localconnection.doneMethod)"
                       :optionsvalue="load_options('done')"
                       @selected="(selected)=>updateForm(selected, 'done')"
                   ></custom-select>
                   <custom-select
                       v-if="!loading_method_option"
                       class="mx-4 my-2"
-                      :defaultvalue="new_connection ? default_empty_option : localconnection.doneMethodOption"
+                      :defaultvalue="defaultOptionalOption(localconnection.doneMethodOption)"
                       :optionsvalue="load_method_options()"
                       @selected="(selected)=>updateForm(selected, 'doneOption')"
                   ></custom-select>
@@ -173,9 +241,11 @@ app.component("configuration-tab", {
       </div>
       <div
           v-if="modified_connection.calendarId != ''"
-          class="absolute left-1/2 bottom-4 transform -translate-x-1/2"
+          class="flex flex-col relative justify-center items-center m-4"
       >
-          <p class="text-slate-100 my-2">Calendar ID</p>
+          <div class="w-80 my-4">
+            <span class="text-slate-100">Calendar ID</span>
+          </div>
           <copy-block :text="modified_connection.calendarId"></copy-block>
       </div>
       <button
@@ -185,17 +255,22 @@ app.component("configuration-tab", {
           <span class="material-symbols-outlined"> close </span>
       </button>
       <div
-        class="flex absolute bottom-4 right-4"
+        class="relative bottom-4 right-4 mt-4"
       >
+          <p class="text-xs text-yellow-300 my-2">{{ warning_message }}</p>
+          <div
+            class="flex flex-row-reverse"
+          >
+          <button
+            @click="new_connection ? createConnection() : updateConnection()"
+            class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 ml-2 outline outline-1 outline-[#52b038] rounded-md transition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25"
+          >{{new_connection ? "Create" : "Save"}}</button>
           <button
             v-if="!new_connection"
             @click="deleteConnection"
             class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#f54b38]/75 px-4 mr-2 outline outline-1 outline-[#f54b38] rounded-md transition-all duration-300 hover:bg-[#f54b38]/50 active:bg-[#f54b38]/25"
           >{{deleting ? "Deleting" : "Delete"}}</button>
-          <button
-            @click="new_connection ? createConnection() : updateConnection()"
-            class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 ml-2 outline outline-1 outline-[#52b038] rounded-md ransition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25"
-          >{{new_connection ? "Create" : "Save"}}</button>
+          </div>
       </div>
   </div>
 `,
@@ -212,7 +287,9 @@ app.component("configuration-tab", {
         name: "Choose an option",
         value: "",
       },
+      warning_message: "",
       current_database: "",
+      intervalId: null,
     };
   },
   computed: {
@@ -223,12 +300,17 @@ app.component("configuration-tab", {
           value: result.databaseId,
         };
       });
+      databaseOptionsList.unshift({ ...this.default_empty_option });
       return databaseOptionsList;
     },
     loading_method_option() {
-      if (this.modified_connection.doneMethod != "") {
+      if (this.modified_connection.doneMethod != "" && this.modified_connection.doneMethod.value != "") {
         return false;
-      } else return true;
+      } else {
+        this.modified_connection.doneMethod = { name: "", value: "" };
+        this.modified_connection.doneMethodOption = { name: "", value: "" };
+        return true;
+      }
     },
   },
   methods: {
@@ -256,13 +338,13 @@ app.component("configuration-tab", {
       let valid = true;
       if (this.new_connection) valid = false;
       let connection = JSON.parse(JSON.stringify(this.modified_connection, null, 2));
-      Object.values(connection)
-        .slice(2)
-        .forEach((property) => {
-          if (property == "") valid = false;
-        });
+      Object.keys(connection).forEach((key) => {
+        if (key != "calendarId" && key != "doneMethod" && key != "doneMethodOption") {
+          if (connection[key] == "" || connection[key].name == "" || connection[key].value == "") valid = false;
+        }
+      });
       if (valid) {
-        fetch("http://localhost:6060/api/reformat/connections", {
+        fetch("http://localhost:6060/api/connections", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -272,21 +354,31 @@ app.component("configuration-tab", {
           if (res.status == 200) {
             console.log("Updated successfully");
             window.location.reload();
-          } else console.log("Error");
+          } else {
+            console.log("Error");
+          }
         });
+      } else {
+        this.warning_message = "You have missing fields";
+        setTimeout(() => {
+          this.warning_message = "";
+        }, 5000);
       }
     },
     createConnection() {
       let valid = true;
       if (!this.new_connection) valid = false;
       let connection = JSON.parse(JSON.stringify(this.modified_connection, null, 2));
-      Object.values(connection)
-        .slice(2)
-        .forEach((property) => {
-          if (property == "") valid = false;
-        });
+      if (connection.calendarName == "" && connection.database.name != "" && connection.database.value != "") {
+        connection.calendarName = connection.database.name;
+      }
+      Object.keys(connection).forEach((key) => {
+        if (key != "calendarId" && key != "doneMethod" && key != "doneMethodOption") {
+          if (connection[key] == "" || connection[key].name == "" || connection[key].value == "") valid = false;
+        }
+      });
       if (valid) {
-        fetch("http://localhost:6060/api/reformat/connections", {
+        fetch("http://localhost:6060/api/connections", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -296,9 +388,22 @@ app.component("configuration-tab", {
           if (res.status == 200) {
             console.log("Connection added successfully");
             window.location.reload();
-          } else console.log("Error");
+          } else {
+            console.log("Error");
+          }
         });
+      } else {
+        this.warning_message = "You have missing fields";
+        setTimeout(() => {
+          this.warning_message = "";
+        }, 5000);
       }
+    },
+
+    defaultOptionalOption(option) {
+      if (option.name != "" && option.value != "" && this.new_connection == false) {
+        return option;
+      } else return { ...this.default_empty_option };
     },
     close_config_tab() {
       this.$emit("tab", false);
@@ -358,6 +463,7 @@ app.component("configuration-tab", {
             value: property.id,
           };
         });
+        options.unshift({ ...this.default_empty_option });
       } else return [];
       return options;
     },
@@ -386,6 +492,7 @@ app.component("configuration-tab", {
         let oldDbId = oldData.database.value;
         if (newDbId != oldDbId) {
           this.loading_properties = true;
+          this.modified_connection.calendarName = "";
           fetch("http://localhost:6060/dashboard/fetchData", {
             method: "GET",
           })
@@ -398,14 +505,18 @@ app.component("configuration-tab", {
                 this.loading_properties = false;
               } else {
                 this.new_connection = true;
-                let updated_connection = {
-                  ...this.modified_connection,
-                };
+                this.modified_connection.calendarName = "";
+                let updated_connection = JSON.parse(JSON.stringify(this.modified_connection));
                 Object.keys(updated_connection).forEach((key) => {
-                  if (key != "database") {
-                    updated_connection[key] = "";
+                  if (key != "database" && key != "calendarId") {
+                    updated_connection[key] = {
+                      name: "",
+                      value: "",
+                    };
                   }
                 });
+                updated_connection.calendarName = "";
+                updated_connection.calendarId = "";
                 this.modified_connection = updated_connection;
                 this.loading_properties = false;
               }
@@ -419,58 +530,72 @@ app.component("configuration-tab", {
     },
   },
   mounted() {
-    setInterval(() => {
+    this.intervalId = setInterval(() => {
       console.log(JSON.parse(JSON.stringify(this.modified_connection, null, 2)));
     }, 5000);
+  },
+  beforeUnmount() {
+    clearInterval(this.intervalId);
+  },
+});
+app.component("custom-input", {
+  template: `
+<input
+    v-model="inputValue"
+    class="relative flex items-center select-none h-6 w-64 text-slate-100 bg-[#585858]/40 px-2 py-4 text-xs rounded-md outline outline-1 outline-[#585858]"
+    type="text"
+    :placeholder="default_name"
+/>
+`,
+  props: ["default_name", "modelValue"],
+  data() {
+    return {};
+  },
+  computed: {
+    inputValue: {
+      get() {
+        return this.modelValue;
+      },
+      set(value) {
+        this.$emit("update:modelValue", value);
+      },
+    },
   },
 });
 app.component("custom-select", {
   template: `
   <div ref="dropdown" class="flex flex-col w-64 bg-[#242424] overflow-hidden rounded-md outline outline-1 outline-[#585858] cursor-pointer">
-    <div
-      :class="{ 'brightness-125 z-30': visibility }"
+    <div :class="{ 'brightness-125' : visibility}"
       class="relative select-none h-6 w-64 bg-[#242424] flex items-center px-2 py-4 text-xs transition-all duration-300 hover:bg-[#202020]"
-      @click="changeVisibility"
-    >
-      <p class="absolute text-slate-100">{{ localSelected.name }}</p>
-      <span
-        :class="{ 'rotate-180': visibility }"
-        class="absolute right-0 text-slate-100 transition-all duration-200 material-symbols-outlined"
-      >
-        arrow_drop_down
-      </span>
+      @click="changeVisibility()">
+          <p class="absolute text-slate-100">{{ localselected.name }}</p>
+          <span :class="{ 'rotate-180': visibility }" class="absolute right-0 text-slate-100 transition-all duration-200 material-symbols-outlined"> arrow_drop_down </span>
     </div>
-    <div
-    :class="[
-          { 'translate-y-9 opacity-100': localOptions.length > 0 && visibility },
-          { 'rounded-md outline outline-1 outline-[#585858] z-20 brightness-125': visibility },
-          'transition-all ease-in-out duration-300'
-        ]"
-      class="absolute translate-y-5 flex flex-col max-h-48 w-64 opacity-0 overflow-y-auto"
-    >
+    <div v-if="localoptions.length > 0" :class="{ 'rounded-md outline outline-1 outline-[#585858] z-20 brightness-125': visibility }" class="absolute translate-y-9 flex flex-col max-h-64 w-64 overflow-y-auto overflow-x-hidden">
       <div
         class="relative select-none h-6 w-64 text-slate-100 bg-[#242424] flex items-center px-2 py-4 text-xs transition-all duration-300 hover:bg-[#202020]"
-        v-for="(option, index) in localOptions"
-        :key="index"
+        v-for="(option, index) in localoptions"
         v-if="visibility"
         @click="
           changeVisibility();
-          localSelected = option;
-        "
-      >
+          localselected = option;
+          ">
         {{ option.name }}
       </div>
     </div>
   </div>
-
   `,
   props: ["optionsvalue", "defaultvalue"],
   data() {
     return {
-      localSelected: this.$props.defaultvalue,
+      localselected: this.$props.defaultvalue,
       visibility: false,
-      localOptions: this.$props.optionsvalue,
     };
+  },
+  computed: {
+    localoptions() {
+      return this.optionsvalue;
+    },
   },
   methods: {
     changeVisibility() {
@@ -479,6 +604,13 @@ app.component("custom-select", {
     handleClickOutside(event) {
       if (!this.$refs.dropdown.contains(event.target)) {
         this.visibility = false;
+      }
+    },
+  },
+  watch: {
+    localselected(newData, oldData) {
+      if (newData != oldData) {
+        this.$emit("selected", this.localselected);
       }
     },
   },
@@ -492,7 +624,7 @@ app.component("custom-select", {
 app.component("copy-block", {
   template: `
 <div
-  class="bg-[#242424] text-slate-100 px-2 py-4 h-6 w-80 rounded-md outline outline-1 outline-[#585858] flex"
+  class="bg-[#242424] text-slate-100 px-2 py-4 h-6 w-80 rounded-md outline outline-1 outline-[#585858] flex relative"
 >
   <span v-if="!success" @click="copy_text()"
       class="absolute bg-[#242424] text-[#585858] right-0 p-1 scale-75 self-center rounded-md select-none cursor-pointer transition-all duration-300 hover:brightness-150 material-symbols-outlined"

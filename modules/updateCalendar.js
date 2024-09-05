@@ -1,15 +1,17 @@
-const { authorize, addEvent, updateEvent, deleteEvent } = require("../modules/googleCalendarAPICustomFuncs.js");
+const { GoogleCalendarAPI } = require(".././modules/googleCalendarAPICustomFuncs.js");
 const path = require("path");
-const CREDENTIALS_PATH = path.join(__dirname, "../oauth/credentials.json");
-const TOKEN_PATH = path.join(__dirname, "../oauth/token.json");
-const SCOPES = [
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
-  "https://www.googleapis.com/auth/calendar.settings.readonly",
-  "https://www.googleapis.com/auth/calendar.addons.execute",
-];
+const calendarClient = new GoogleCalendarAPI({
+  credentials_path: path.join(__dirname, "../oauth/credentials.json"),
+  token_path: path.join(__dirname, "../oauth/token.json"),
+  scopes: [
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    "https://www.googleapis.com/auth/calendar.settings.readonly",
+    "https://www.googleapis.com/auth/calendar.addons.execute",
+  ],
+});
 
 function compareEvent(notionCalEvent, googleCalEvent) {
   let keysToBeCompared = ["summary", "description"];
@@ -38,7 +40,6 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
   let deleteRelationCount = 0;
   let updateRelationCount = 0;
   try {
-    let auth = await authorize(CREDENTIALS_PATH, TOKEN_PATH, SCOPES);
     for (let i = 0; i <= relationTb.length - 1; i++) {
       let notionCalEvent = notionCalEvents.find((event) => event.page_id === relationTb[i].page_id);
       let googleCalEvent = googleCalEvents.find((event) => event.event_id === relationTb[i].event_id);
@@ -46,8 +47,7 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
       if (typeof notionCalEvent != "undefined" && typeof googleCalEvent != "undefined") {
         if (compareEvent(notionCalEvent, googleCalEvent) == false) {
           try {
-            const updatedEvent = await updateEvent(
-              auth,
+            const updatedEvent = await calendarClient.updateEvent(
               calendarId,
               googleCalEvent.event_id,
               notionCalEvent.summary,
@@ -66,7 +66,7 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
       else if (typeof notionCalEvent == "undefined" && typeof googleCalEvent != "undefined") {
         if (notionCalEvents.length == 0) {
           try {
-            await deleteEvent(auth, calendarId, googleCalEvent.event_id);
+            await calendarClient.deleteEvent(calendarId, googleCalEvent.event_id);
             deleteEventCount++;
             console.log("Delete successfully");
             relationTb.splice(i, 1);
@@ -81,7 +81,7 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
           let oldestDate = new Date(notionCalEvents[0].created_time);
           if (date > oldestDate) {
             try {
-              await deleteEvent(auth, calendarId, googleCalEvent.event_id);
+              await calendarClient.deleteEvent(calendarId, googleCalEvent.event_id);
               deleteEventCount++;
               console.log("Delete successfully");
               relationTb.splice(i, 1);
@@ -97,8 +97,7 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
       // Re-adding event that is mistakenly deleted in Google Calendar & update the relation accordingly
       else if (typeof notionCalEvent != "undefined" && typeof googleCalEvent == "undefined") {
         try {
-          const reAddedEvent = await addEvent(
-            auth,
+          const reAddedEvent = await calendarClient.addEvent(
             calendarId,
             notionCalEvent.summary,
             notionCalEvent.description,
@@ -129,8 +128,7 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
     const addNewEvents = newCalEventsList.map((event) => {
       return new Promise(async (resolve, reject) => {
         try {
-          const addedEvent = await addEvent(
-            auth,
+          const addedEvent = await calendarClient.addEvent(
             calendarId,
             event.summary,
             event.description,

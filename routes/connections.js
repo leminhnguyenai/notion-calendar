@@ -3,19 +3,20 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
-const equal = require("fast-deep-equal");
 const updateFiles = require("../modules/updateFiles.js");
-const { authorize, createCalendar, deleteCalendar } = require("../modules/googleCalendarAPICustomFuncs.js");
-const CREDENTIALS_PATH = path.join(__dirname, "../oauth/credentials.json");
-const TOKEN_PATH = path.join(__dirname, "../oauth/token.json");
-const SCOPES = [
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
-  "https://www.googleapis.com/auth/calendar.settings.readonly",
-  "https://www.googleapis.com/auth/calendar.addons.execute",
-];
+const { GoogleCalendarAPI } = require(".././modules/googleCalendarAPICustomFuncs.js");
+const calendarClient = new GoogleCalendarAPI({
+  credentials_path: path.join(__dirname, "../oauth/credentials.json"),
+  token_path: path.join(__dirname, "../oauth/token.json"),
+  scopes: [
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    "https://www.googleapis.com/auth/calendar.settings.readonly",
+    "https://www.googleapis.com/auth/calendar.addons.execute",
+  ],
+});
 
 router.use(express.json());
 
@@ -39,8 +40,7 @@ router.post("/", async (req, res) => {
     const connection = req.body;
     await updateFiles("connections.json", async (data) => {
       if (data == "ENOENT" || !Array.isArray(data)) data = [];
-      let auth = await authorize(CREDENTIALS_PATH, TOKEN_PATH, SCOPES);
-      connection.calendarId = await createCalendar(auth, connection.databaseName);
+      connection.calendarId = await calendarClient.createCalendar(connection.calendarName);
       console.log(`Adding new connection:\n${JSON.stringify(connection, null, 2)}`);
       data.push(connection);
       res.json(connection);
@@ -68,6 +68,11 @@ router.patch("/", async (req, res) => {
       if (data == "ENOENT" || !Array.isArray(data)) data = [];
       let newData = data.map((connection) => {
         if (connection.calendarId == newConnection.calendarId) {
+          calendarClient.updateCalendar(newConnection.calendarId, newConnection.calendarName).catch((err) => {
+            console.error(err);
+            throw new err();
+          });
+
           return newConnection;
         } else return connection;
       });
@@ -98,8 +103,7 @@ router.delete("/", async (req, res) => {
         await axios.post(`http://localhost:6060/api/update`, {
           command: "stop",
         });
-        let auth = await authorize(CREDENTIALS_PATH, TOKEN_PATH, SCOPES);
-        await deleteCalendar(auth, calendarId);
+        await calendarClient.deleteCalendar(calendarId);
         let file_path = `./relationTbs/relationTb_${connections[deleteConnectionIndex].calendarId}.json`;
         try {
           fs.unlinkSync(file_path);

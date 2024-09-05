@@ -6,20 +6,22 @@ const axios = require("axios");
 const updateFiles = require("../modules/updateFiles.js");
 const syncCalendar = require(".././modules/updateCalendar.js");
 const { findData, doneStatus } = require(".././modules/findData.js");
-const { authorize, getEvents } = require(".././modules/googleCalendarAPICustomFuncs.js");
+const { GoogleCalendarAPI } = require(".././modules/googleCalendarAPICustomFuncs.js");
 require("dotenv").config();
 const { Client } = require("@notionhq/client");
 const notion = new Client({ auth: process.env.NOTION_KEY });
-const CREDENTIALS_PATH = path.join(__dirname, "../oauth/credentials.json");
-const TOKEN_PATH = path.join(__dirname, "../oauth/token.json");
-const SCOPES = [
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
-  "https://www.googleapis.com/auth/calendar.settings.readonly",
-  "https://www.googleapis.com/auth/calendar.addons.execute",
-];
+const calendarClient = new GoogleCalendarAPI({
+  credentials_path: path.join(__dirname, "../oauth/credentials.json"),
+  token_path: path.join(__dirname, "../oauth/token.json"),
+  scopes: [
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    "https://www.googleapis.com/auth/calendar.settings.readonly",
+    "https://www.googleapis.com/auth/calendar.addons.execute",
+  ],
+});
 
 let intervalId = null;
 
@@ -59,16 +61,16 @@ router.get("/", async (req, res) => {
     let notionData;
     try {
       notionData = await notion.databases.query({
-        database_id: connection.databaseId,
+        database_id: connection.database.value,
         filter: {
-          property: connection.dateColumn,
+          property: connection.date.name,
           date: {
             is_not_empty: true,
           },
         },
         sorts: [
           {
-            property: connection.dateColumn,
+            property: connection.date.name,
             direction: "ascending",
           },
         ],
@@ -81,17 +83,19 @@ router.get("/", async (req, res) => {
     let notionCalEventsList = [];
     for (let i = 0; i <= notionData.results.length - 1; i++) {
       try {
+        let done;
+        if (connection.doneMethod.name == "" || connection.doneMethod.value == "") {
+          done = "";
+        } else {
+          done = await doneStatus(notionData.results[i], connection.doneMethod.name, connection.doneMethodOption.value);
+        }
         notionCalEventsList.push({
           page_id: notionData.results[i].id,
-          summary: `${await doneStatus(
-            notionData.results[i],
-            connection.doneMethod,
-            connection.doneMethodOptionId
-          )}${await findData(notionData.results[i], connection.nameColumn)}`,
-          description: await findData(notionData.results[i], connection.descriptionColumn),
+          summary: `${done}${await findData(notionData.results[i], connection.name.name)}`,
+          description: await findData(notionData.results[i], connection.description.name),
           created_time: notionData.results[i].created_time,
-          start_date: notionData.results[i].properties[connection.dateColumn].date.start,
-          end_date: notionData.results[i].properties[connection.dateColumn].date.end,
+          start_date: notionData.results[i].properties[connection.date.name].date.start,
+          end_date: notionData.results[i].properties[connection.date.name].date.end,
         });
       } catch (err) {
         console.error(err);
@@ -102,8 +106,7 @@ router.get("/", async (req, res) => {
     // Get data from google Calendar
     let googleCalData;
     try {
-      let auth = await authorize(CREDENTIALS_PATH, TOKEN_PATH, SCOPES);
-      googleCalData = await getEvents(auth, connection.calendarId, 250);
+      googleCalData = await calendarClient.getEvents(connection.calendarId, 250);
     } catch (err) {
       console.error(err);
       reject();

@@ -1,17 +1,30 @@
 [
   {
-    "calendarId": "4549a835ad45c7321cee9857ceaba09b7be54b1aafe2e631d2b12394034c60bd@group.calendar.google.com",
-    "databaseName": "📋 Notion tasks ",
-    "databaseId": "fe62e687-5fa5-4b2f-b8cb-8e4bd4a1eb65",
-    "dateColumn": "Due Date",
-    "dateColumnId": "eD%3DI",
-    "nameColumn": "Name",
-    "nameColumnId": "title",
-    "descriptionColumn": "Notes",
-    "descriptionColumnId": "Jg~E",
-    "doneMethod": "Status",
-    "doneMethodId": "F%3FJa",
-    "doneMethodOptionName": "Done",
-    "doneMethodOptionId": "Jqhn"
+    "calendarName": "Notion projects",
+    "calendarId": "a5537e006d0fe993407046f009d085f2697072d222cb62799a1f06aa3890e569@group.calendar.google.com",
+    "database": {
+      "name": "📋 Notion tasks",
+      "value": "fe62e687-5fa5-4b2f-b8cb-8e4bd4a1eb65"
+    },
+    "date": {
+      "name": "Due Date",
+      "value": "eD%3DI"
+    },
+    "name": {
+      "name": "Name",
+      "value": "title"
+    },
+    "description": {
+      "name": "Notes",
+      "value": "Jg~E"
+    },
+    "doneMethod": {
+      "name": "Status",
+      "value": "F%3FJa"
+    },
+    "doneMethodOption": {
+      "name": "Done",
+      "value": "Jqhn"
+    }
   }
 ]

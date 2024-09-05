@@ -39,7 +39,7 @@ router.patch("/", async (req, res) => {
     await axios.post(`http://localhost:6060/api/update`, {
       command: "start",
     });
-    res.send("Config updated");
+    res.status(200).send("Config updated");
   }
 });
 module.exports = router;
