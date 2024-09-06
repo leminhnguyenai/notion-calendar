@@ -5,4 +5,4 @@ oauth/
 .zed
 connections.json
 config.json
-relationTbs/
+relationTbs/*.json
