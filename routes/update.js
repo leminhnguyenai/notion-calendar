@@ -27,15 +27,23 @@ let intervalId = null;
 
 function startInterval(refreshRate) {
   let count = 0;
-  intervalId = setInterval(() => {
-    if (count % refreshRate == 0) {
-      axios.get(`http://localhost:${port}/api/update`).catch((err) => {
-        console.error(err);
-      });
-    }
-    count += 1000;
-  }, 1000);
-  console.log("Interval started");
+  try {
+    intervalId = setInterval(() => {
+      if (count % refreshRate == 0) {
+        try {
+          axios.get(`http://localhost:${port}/api/update`);
+        } catch (err) {
+          console.error(err);
+          stopInterval(intervalId);
+        }
+      }
+      count += 1000;
+    }, 1000);
+    console.log("Interval started");
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
 
 function stopInterval() {
@@ -77,7 +85,6 @@ router.get("/", async (req, res) => {
       });
     } catch (err) {
       console.error(err);
-      reject();
     }
     // Format notion data
     let notionCalEventsList = [];
@@ -99,17 +106,14 @@ router.get("/", async (req, res) => {
         });
       } catch (err) {
         console.error(err);
-        reject();
       }
     }
-    console.log(`Notion events:\n${JSON.stringify(notionCalEventsList, null, 2)}`);
     // Get data from google Calendar
     let googleCalData;
     try {
       googleCalData = await calendarClient.getEvents(connection.calendarId, 250);
     } catch (err) {
       console.error(err);
-      reject();
     }
     // Format google Calendar data
     let googleCalEventsList = [];
@@ -122,7 +126,6 @@ router.get("/", async (req, res) => {
         end_date: googleCalData[i].end.dateTime,
       });
     }
-    console.log(`Google Calendar events:\n${JSON.stringify(googleCalEventsList, null, 2)}`);
     // Sync notion calendar with google Calendar
     try {
       await updateFiles(`./relationTbs/relationTb_${connection.calendarId}.json`, async (relationTb) => {
@@ -135,13 +138,12 @@ router.get("/", async (req, res) => {
         );
         relationTb = response.relationTb;
         let changelog = response.changelog;
-        console.log(`Updated relationTb:\n${JSON.stringify(relationTb, null, 2)}`);
+        console.log(`Calendar ID: ${connection.calendarId}`);
         console.log(`Change log:\n${changelog}`);
         return relationTb;
       });
     } catch (err) {
       console.error(err);
-      reject();
     }
   }
 });

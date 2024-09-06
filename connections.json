@@ -26,5 +26,33 @@
       "name": "Done",
       "value": "Jqhn"
     }
+  },
+  {
+    "calendarId": "972cb6ca5fdac17a504ff7db8861fb6330bf8457271080805731dcdb1ec3fb04@group.calendar.google.com",
+    "calendarName": "📋 Game development tasks",
+    "database": {
+      "name": "📋 Game development tasks",
+      "value": "6e8f758a-5a32-4341-9bbb-71882d1ec126"
+    },
+    "date": {
+      "name": "Due Date",
+      "value": "KRNE"
+    },
+    "name": {
+      "name": "Name",
+      "value": "title"
+    },
+    "description": {
+      "name": "Status",
+      "value": "F%3FJa"
+    },
+    "doneMethod": {
+      "name": "",
+      "value": ""
+    },
+    "doneMethodOption": {
+      "name": "",
+      "value": ""
+    }
   }
 ]

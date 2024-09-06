@@ -1,4 +1,53 @@
 let app = Vue.createApp({
+  template: `
+  <div :key="updateKey">
+  <nav class="fixed w-screen h-16 top-0 bg-[#202020] outline outline-1 outline-[#484848]">
+  <div
+    class="flex flex-row-reverse w-full h-full px-4 bg-[#202020] outline outline-1 outline-[#484848] items-center">
+    <span
+      @click="this.open_setting = !this.open_setting;"
+      class="material-symbols-outlined text-slate-100 transition-all duration-200 hover:brightness-75 active:brightness-50 active:scale-95 select-none cursor-pointer">
+      settings
+    </span>
+  </div>
+</nav>
+<div class="grid grid-cols-6 gap-2 mt-20 mx-2 mb-2">
+  <connection
+    v-for="(connection, index) in connectionList"
+    :key="index"
+    :localconnection="connection"
+    :localnotiondata="notiondata"></connection>
+</div>
+<div
+  v-if="open_setting"
+  class="flex fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-2/5 bg-[#000000] rounded-md">
+  <div class="flex justify-between w-full px-4 py-2 mt-12">
+    <p class="text-slate-100">Refresh rate</p>
+    <custom-input v-model="refresh_rate" class="" />
+  </div>
+  <div class="flex absolute bottom-2 right-2 items-center">
+    <p class="text-yellow-300 text-xs px-2">{{ warning_message }}</p>
+    <button
+      @click="update_config()"
+      class="box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 outline outline-1 outline-[#52b038] rounded-md transition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25">
+      Save
+    </button>
+  </div>
+  <span
+    @click="this.open_setting = !this.open_setting;"
+    class="material-symbols-outlined absolute top-2 right-2 text-slate-100 select-none cursor-pointer hover:brightness-75 active:brightness-50 transition-all duration-200">
+    close
+  </span>
+</div>
+<configuration-tab
+  v-if="create_con"
+  :localconnection="blank_connection"
+  :localnotiondata="notiondata"
+  :new_con="true"
+  @tab="(tab)=> this.create_con=tab"></configuration-tab>
+<addbtn @click="create_new_con()"></addbtn>
+  </div>
+  `,
   data: function () {
     return {
       connectionList: [],
@@ -9,6 +58,7 @@ let app = Vue.createApp({
       load_notiondata: false,
       refresh_rate: 0,
       warning_message: "",
+      updateKey: 0,
     };
   },
   computed: {
@@ -45,7 +95,8 @@ let app = Vue.createApp({
   },
   methods: {
     create_new_con() {
-      if (this.load_connection == true && this.load_notiondata == true) this.create_con = !this.create_con;
+      if (this.load_connection == true && this.load_notiondata == true)
+        this.create_con = !this.create_con;
     },
     update_config() {
       let valid = true;
@@ -72,6 +123,43 @@ let app = Vue.createApp({
           });
       }
     },
+    get_connection_data() {
+      fetch("http://localhost:6060/api/connections", {
+        method: "GET",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          this.connectionList = JSON.parse(JSON.stringify(data));
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
+    get_config_data() {
+      fetch("http://localhost:6060/api/config", {
+        method: "GET",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          let refreshRate = JSON.parse(JSON.stringify(data)).refreshRate;
+          this.refresh_rate = refreshRate / 1000;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
+    get_notion_data() {
+      fetch("http://localhost:6060/dashboard/fetchData", {
+        method: "GET",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          this.notiondata = JSON.parse(JSON.stringify(data));
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
   },
   watch: {
     connectionList() {
@@ -85,39 +173,13 @@ let app = Vue.createApp({
     },
   },
   mounted() {
-    fetch("http://localhost:6060/api/connections", {
-      method: "GET",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        this.connectionList = JSON.parse(JSON.stringify(data));
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-
-    fetch("http://localhost:6060/api/config", {
-      method: "GET",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        let refreshRate = JSON.parse(JSON.stringify(data)).refreshRate;
-        this.refresh_rate = refreshRate / 1000;
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-
-    fetch("http://localhost:6060/dashboard/fetchData", {
-      method: "GET",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        this.notiondata = JSON.parse(JSON.stringify(data));
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    console.log("Hello there");
+    this.get_connection_data();
+    this.get_config_data();
+    this.get_notion_data();
+    setInterval(() => {
+      this.updateKey += 1;
+    }, 5000);
   },
 });
 app.component("addbtn", {
@@ -163,126 +225,159 @@ app.component("connection", {
 });
 app.component("configuration-tab", {
   template: `
-  <div
-      v-if="!close_tab"
-      class="flex flex-col fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] size-4/5 rounded-lg shadow-md select-none overflow-y-auto"
-  >
-      <div class="relative grid grid-cols-3 gap-4 mx-4 my-8 h-4/6">
-          <div class="col-span-1 h-full bg-[#545454]/40 rounded-md">
-              <p class="relative mx-4 my-2 text-slate-100">Database</p>
-              <custom-select
-                  class="mx-4 my-2"
-                  :defaultvalue="new_connection ? default_empty_option : localconnection.database"
-                  :optionsvalue="database_options_list"
-                  @selected="(selected)=>updateForm(selected, 'database')"
-              ></custom-select>
-              <p class="relative mx-4 my-2 text-slate-100">Calendar name</p>
-              <custom-input 
-                class="relative mx-4 my-2 text-slate-100"
-                v-model="this.modified_connection.calendarName"
-                :default_name="this.new_connection ? this.modified_connection.database.name : ''"
-              />
-          </div>
-          <div class="col-span-1 h-full bg-[#545454]/40 rounded-md">
-              <span
-                  v-if="loading_properties"
-                  class="animate-spin mx-4 my-2 text-slate-100 material-symbols-outlined"
-              >
-                  progress_activity
-              </span>
-              <div v-if="!loading_properties">
-                  <p class="relative mx-4 my-2 text-slate-100">Date</p>
-                  <custom-select
-                      class="mx-4 my-2"
-                      :defaultvalue="new_connection ? default_empty_option : localconnection.date"
-                      :optionsvalue="load_options('date')"
-                      @selected="(selected)=>updateForm(selected, 'date')"
-                  ></custom-select>
-                  <p class="relative mx-4 my-2 text-slate-100">Name</p>
-                  <custom-select
-                      class="mx-4 my-2"
-                      :defaultvalue="new_connection ? default_empty_option : localconnection.name"
-                      :optionsvalue="load_options('name')"
-                      @selected="(selected)=>updateForm(selected, 'name')"
-                  ></custom-select>
-                  <p class="relative mx-4 my-2 text-slate-100">Description</p>
-                  <custom-select
-                      class="mx-4 my-2"
-                      :defaultvalue="new_connection ? default_empty_option : localconnection.description"
-                      :optionsvalue="load_options('description')"
-                      @selected="(selected)=>updateForm(selected, 'description')"
-                  ></custom-select>
-              </div>
-          </div>
-          <div class="col-span-1 h-full bg-[#545454]/40 rounded-md">
-              <span
-                  v-if="loading_properties"
-                  class="animate-spin mx-4 my-2 text-slate-100 material-symbols-outlined"
-              >
-                  progress_activity
-              </span>
-              <div v-if="!loading_properties">
-                  <p class="relative mx-4 my-2 text-slate-100">Mark as done</p>
-                  <custom-select
-                      class="mx-4 my-2"
-                      :defaultvalue="defaultOptionalOption(localconnection.doneMethod)"
-                      :optionsvalue="load_options('done')"
-                      @selected="(selected)=>updateForm(selected, 'done')"
-                  ></custom-select>
-                  <custom-select
-                      v-if="!loading_method_option"
-                      class="mx-4 my-2"
-                      :defaultvalue="defaultOptionalOption(localconnection.doneMethodOption)"
-                      :optionsvalue="load_method_options()"
-                      @selected="(selected)=>updateForm(selected, 'doneOption')"
-                  ></custom-select>
-              </div>
-          </div>
-      </div>
-      <div
-          v-if="modified_connection.calendarId != ''"
-          class="flex flex-col relative justify-center items-center m-4"
-      >
-          <div class="w-80 my-4">
-            <span class="text-slate-100">Calendar ID</span>
-          </div>
-          <copy-block :text="modified_connection.calendarId"></copy-block>
-      </div>
-      <button
-          @click="close_config_tab()"
-          class="absolute text-slate-300 text-sm top-1 right-1 transition-all duration-100 hover:text-slate-100 active:text-slate-300"
-      >
-          <span class="material-symbols-outlined"> close </span>
-      </button>
-      <div
-        class="relative bottom-4 right-4 mt-4"
-      >
-          <p class="text-xs text-yellow-300 my-2">{{ warning_message }}</p>
-          <div
-            class="flex flex-row-reverse"
-          >
-          <button
-            @click="new_connection ? createConnection() : updateConnection()"
-            class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 ml-2 outline outline-1 outline-[#52b038] rounded-md transition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25"
-          >{{new_connection ? "Create" : "Save"}}</button>
-          <button
-            v-if="!new_connection"
-            @click="deleteConnection"
-            class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#f54b38]/75 px-4 mr-2 outline outline-1 outline-[#f54b38] rounded-md transition-all duration-300 hover:bg-[#f54b38]/50 active:bg-[#f54b38]/25"
-          >{{deleting ? "Deleting" : "Delete"}}</button>
-          </div>
-      </div>
-  </div>
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-screen h-screen bg-[#000000]" style="opacity: 0.2;"></div>
+            <div
+                class="flex flex-col fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] size-4/5 rounded-lg shadow-md select-none overflow-y-auto"
+            >
+                <button
+                    @click="close_config_tab()"
+                    class="flex flex-row-reverse sticky text-slate-300 text-sm top-1 mr-1 transition-all duration-100 hover:text-slate-100 active:text-slate-300"
+                >
+                    <span class="material-symbols-outlined"> close </span>
+                </button>
+                <div class="relative grid grid-cols-3 gap-4 mx-4 my-4">
+                    <div
+                        class="col-span-1 pb-4 pt-2 pl-2 bg-[#545454]/40 rounded-md"
+                    >
+                        <p class="relative mx-4 my-2 text-slate-100">
+                            Database
+                        </p>
+                        <custom-select
+                            class="mx-4 my-2"
+                            :defaultvalue="new_connection ? default_empty_option : localconnection.database"
+                            :optionsvalue="database_options_list"
+                            @selected="(selected)=>updateForm(selected, 'database')"
+                        ></custom-select>
+                        <p class="relative mx-4 my-2 text-slate-100">
+                            Calendar name
+                        </p>
+                        <custom-input
+                            class="relative mx-4 my-2 text-slate-100"
+                            v-model="this.modified_connection.calendarName"
+                            :default_name="this.new_connection ? this.modified_connection.database.name : ''"
+                        />
+                    </div>
+                    <div
+                        class="col-span-1 pb-4 pt-2 pl-2 bg-[#545454]/40 rounded-md"
+                    >
+                        <span
+                            v-if="loading_properties"
+                            class="animate-spin mx-4 my-2 text-slate-100 material-symbols-outlined"
+                        >
+                            progress_activity
+                        </span>
+                        <div v-if="!loading_properties">
+                            <p class="relative mx-4 my-2 text-slate-100">
+                                Date
+                            </p>
+                            <custom-select
+                                class="mx-4 my-2"
+                                :defaultvalue="new_connection ? default_empty_option : localconnection.date"
+                                :optionsvalue="load_options('date')"
+                                @selected="(selected)=>updateForm(selected, 'date')"
+                            ></custom-select>
+                            <p class="relative mx-4 my-2 text-slate-100">
+                                Name
+                            </p>
+                            <custom-select
+                                class="mx-4 my-2"
+                                :defaultvalue="new_connection ? default_empty_option : localconnection.name"
+                                :optionsvalue="load_options('name')"
+                                @selected="(selected)=>updateForm(selected, 'name')"
+                            ></custom-select>
+                            <p class="relative mx-4 my-2 text-slate-100">
+                                Description
+                            </p>
+                            <custom-select
+                                class="mx-4 my-2"
+                                :defaultvalue="new_connection ? default_empty_option : localconnection.description"
+                                :optionsvalue="load_options('description')"
+                                @selected="(selected)=>updateForm(selected, 'description')"
+                            ></custom-select>
+                        </div>
+                    </div>
+                    <div
+                        class="col-span-1 pb-4 pt-2 pl-2 bg-[#545454]/40 rounded-md"
+                    >
+                        <span
+                            v-if="loading_properties"
+                            class="animate-spin mx-4 my-2 text-slate-100 material-symbols-outlined"
+                        >
+                            progress_activity
+                        </span>
+                        <div v-if="!loading_properties">
+                            <p class="relative mx-4 my-2 text-slate-100">
+                                Mark as done
+                            </p>
+                            <custom-select
+                                class="mx-4 my-2"
+                                :defaultvalue="defaultOptionalOption(localconnection.doneMethod)"
+                                :optionsvalue="load_options('done')"
+                                @selected="(selected)=>updateForm(selected, 'done')"
+                            ></custom-select>
+                            <custom-select
+                                v-if="!loading_method_option"
+                                class="mx-4 my-2"
+                                :defaultvalue="defaultOptionalOption(localconnection.doneMethodOption)"
+                                :optionsvalue="load_method_options()"
+                                @selected="(selected)=>updateForm(selected, 'doneOption')"
+                            ></custom-select>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    v-if="modified_connection.calendarId != ''"
+                    class="flex flex-col relative justify-center items-center m-4"
+                >
+                    <div class="w-80 my-4">
+                        <span class="text-slate-100">Calendar ID</span>
+                    </div>
+                    <copy-block
+                        :text="modified_connection.calendarId"
+                    ></copy-block>
+                </div>
+                <div class="sticky bottom-1 flex grow w-full">
+                    <div class="absolute bottom-2 right-2">
+                        <div class="flex flex-row-reverse h-8 box-border">
+                            <button
+                                @click="new_connection ? createConnection() : updateConnection()"
+                                class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 ml-2 outline outline-1 outline-[#52b038] rounded-md transition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25"
+                            >
+                                {{new_connection ? "Create" : "Save"}}
+                            </button>
+                            <button
+                                v-if="!new_connection"
+                                @click="deleteConnection"
+                                class="relative box-border w-24 h-8 text-sm text-slate-100 bg-[#f54b38]/75 px-4 outline outline-1 outline-[#f54b38] rounded-md transition-all duration-300 hover:bg-[#f54b38]/50 active:bg-[#f54b38]/25"
+                            >
+                                Delete
+                            </button>
+                            <p class="text-xs text-yellow-300 my-2">
+                                {{ warning_message }}
+                            </p>
+                            <span
+                                v-if="deleting || creating_or_adding"
+                                class="flex items-center justify-center animate-spin mx-2 text-md text-gray-300 material-symbols-outlined p-2"
+                            >
+                                progress_activity
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 `,
+  emits: ["tab"],
   props: ["localconnection", "localnotiondata", "new_con"],
   data() {
     return {
-      close_tab: false,
       new_connection: this.new_con,
       loading_properties: false,
       deleting: false,
+      creating_or_adding: false,
       notiondata: JSON.parse(JSON.stringify(this.localnotiondata, null, 2)),
-      modified_connection: JSON.parse(JSON.stringify(this.localconnection, null, 2)),
+      modified_connection: JSON.parse(
+        JSON.stringify(this.localconnection, null, 2),
+      ),
       default_empty_option: {
         name: "Choose an option",
         value: "",
@@ -304,7 +399,10 @@ app.component("configuration-tab", {
       return databaseOptionsList;
     },
     loading_method_option() {
-      if (this.modified_connection.doneMethod != "" && this.modified_connection.doneMethod.value != "") {
+      if (
+        this.modified_connection.doneMethod != "" &&
+        this.modified_connection.doneMethod.value != ""
+      ) {
         return false;
       } else {
         this.modified_connection.doneMethod = { name: "", value: "" };
@@ -315,6 +413,7 @@ app.component("configuration-tab", {
   },
   methods: {
     deleteConnection() {
+      this.deleting = true;
       fetch("http://localhost:6060/api/connections", {
         method: "DELETE",
         headers: {
@@ -332,15 +431,26 @@ app.component("configuration-tab", {
           console.log("Error");
         }
       });
-      this.deleting = true;
     },
     updateConnection() {
       let valid = true;
+      this.creating_or_adding = true;
       if (this.new_connection) valid = false;
-      let connection = JSON.parse(JSON.stringify(this.modified_connection, null, 2));
+      let connection = JSON.parse(
+        JSON.stringify(this.modified_connection, null, 2),
+      );
       Object.keys(connection).forEach((key) => {
-        if (key != "calendarId" && key != "doneMethod" && key != "doneMethodOption") {
-          if (connection[key] == "" || connection[key].name == "" || connection[key].value == "") valid = false;
+        if (
+          key != "calendarId" &&
+          key != "doneMethod" &&
+          key != "doneMethodOption"
+        ) {
+          if (
+            connection[key] == "" ||
+            connection[key].name == "" ||
+            connection[key].value == ""
+          )
+            valid = false;
         }
       });
       if (valid) {
@@ -356,9 +466,11 @@ app.component("configuration-tab", {
             window.location.reload();
           } else {
             console.log("Error");
+            this.creating_or_adding = false;
           }
         });
       } else {
+        this.creating_or_adding = false;
         this.warning_message = "You have missing fields";
         setTimeout(() => {
           this.warning_message = "";
@@ -367,14 +479,30 @@ app.component("configuration-tab", {
     },
     createConnection() {
       let valid = true;
+      this.creating_or_adding = true;
       if (!this.new_connection) valid = false;
-      let connection = JSON.parse(JSON.stringify(this.modified_connection, null, 2));
-      if (connection.calendarName == "" && connection.database.name != "" && connection.database.value != "") {
+      let connection = JSON.parse(
+        JSON.stringify(this.modified_connection, null, 2),
+      );
+      if (
+        connection.calendarName == "" &&
+        connection.database.name != "" &&
+        connection.database.value != ""
+      ) {
         connection.calendarName = connection.database.name;
       }
       Object.keys(connection).forEach((key) => {
-        if (key != "calendarId" && key != "doneMethod" && key != "doneMethodOption") {
-          if (connection[key] == "" || connection[key].name == "" || connection[key].value == "") valid = false;
+        if (
+          key != "calendarId" &&
+          key != "doneMethod" &&
+          key != "doneMethodOption"
+        ) {
+          if (
+            connection[key] == "" ||
+            connection[key].name == "" ||
+            connection[key].value == ""
+          )
+            valid = false;
         }
       });
       if (valid) {
@@ -387,12 +515,22 @@ app.component("configuration-tab", {
         }).then((res) => {
           if (res.status == 200) {
             console.log("Connection added successfully");
-            window.location.reload();
+            res
+              .json()
+              .then((data) => {
+                this.modified_connection = data;
+                this.creating_or_adding = false;
+              })
+              .catch((err) => {
+                console.error(err);
+              });
           } else {
             console.log("Error");
+            thid.creating_or_adding = false;
           }
         });
       } else {
+        this.creating_or_adding = false;
         this.warning_message = "You have missing fields";
         setTimeout(() => {
           this.warning_message = "";
@@ -401,16 +539,22 @@ app.component("configuration-tab", {
     },
 
     defaultOptionalOption(option) {
-      if (option.name != "" && option.value != "" && this.new_connection == false) {
+      if (
+        option.name != "" &&
+        option.value != "" &&
+        this.new_connection == false
+      ) {
         return option;
       } else return { ...this.default_empty_option };
     },
     close_config_tab() {
+      //window.location.reload();
       this.$emit("tab", false);
-      this.close_tab = true;
     },
     updateForm(selected, type) {
-      const updatedConnection = JSON.parse(JSON.stringify(this.modified_connection));
+      const updatedConnection = JSON.parse(
+        JSON.stringify(this.modified_connection),
+      );
       if (type == "database") {
         updatedConnection.database = selected;
       } else if (type == "date") {
@@ -431,7 +575,8 @@ app.component("configuration-tab", {
     load_options(type) {
       let typeList;
       if (type == "date") typeList = ["date"];
-      else if (type == "name") typeList = ["title", "formula", "text", "rich_text"];
+      else if (type == "name")
+        typeList = ["title", "formula", "text", "rich_text"];
       else if (type == "description")
         typeList = [
           "email",
@@ -449,12 +594,16 @@ app.component("configuration-tab", {
           "title",
         ];
       else if (type == "done") typeList = ["select", "status"];
-      let database = this.notiondata.find((result) => result.databaseId == this.modified_connection.database.value);
+      let database = this.notiondata.find(
+        (result) =>
+          result.databaseId == this.modified_connection.database.value,
+      );
       let options = [];
       if (typeof database != "undefined") {
-        if (this.current_database == "") this.current_database = JSON.parse(JSON.stringify(database, null, 2));
-        let properties = (options = Object.values(database.properties).filter((property) =>
-          typeList.includes(property.type)
+        if (this.current_database == "")
+          this.current_database = JSON.parse(JSON.stringify(database, null, 2));
+        let properties = (options = Object.values(database.properties).filter(
+          (property) => typeList.includes(property.type),
         ));
 
         options = properties.map((property) => {
@@ -472,7 +621,9 @@ app.component("configuration-tab", {
       let doneMethodId = this.modified_connection.doneMethod.value;
       let options = [];
       if (database != "") {
-        let doneMethod = Object.values(database.properties).find((property) => property.id == doneMethodId);
+        let doneMethod = Object.values(database.properties).find(
+          (property) => property.id == doneMethodId,
+        );
         if (typeof doneMethod != "undefined") {
           options = doneMethod.select.options.map((option) => {
             return {
@@ -501,12 +652,16 @@ app.component("configuration-tab", {
               this.notion_data = JSON.parse(JSON.stringify(data));
               if (newDbId == this.localconnection.database.value) {
                 this.new_connection = false;
-                this.modified_connection = JSON.parse(JSON.stringify(this.localconnection, null, 2));
+                this.modified_connection = JSON.parse(
+                  JSON.stringify(this.localconnection, null, 2),
+                );
                 this.loading_properties = false;
               } else {
                 this.new_connection = true;
                 this.modified_connection.calendarName = "";
-                let updated_connection = JSON.parse(JSON.stringify(this.modified_connection));
+                let updated_connection = JSON.parse(
+                  JSON.stringify(this.modified_connection),
+                );
                 Object.keys(updated_connection).forEach((key) => {
                   if (key != "database" && key != "calendarId") {
                     updated_connection[key] = {
@@ -531,7 +686,9 @@ app.component("configuration-tab", {
   },
   mounted() {
     this.intervalId = setInterval(() => {
-      console.log(JSON.parse(JSON.stringify(this.modified_connection, null, 2)));
+      console.log(
+        JSON.parse(JSON.stringify(this.modified_connection, null, 2)),
+      );
     }, 5000);
   },
   beforeUnmount() {

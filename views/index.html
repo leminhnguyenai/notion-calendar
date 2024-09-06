@@ -15,53 +15,7 @@
     <title>Dashboard</title>
   </head>
   <body class="bg-[#202020]">
-    <div id="app">
-      <nav class="fixed w-screen h-16 top-0 bg-[#202020] outline outline-1 outline-[#484848]">
-        <div
-          class="flex flex-row-reverse w-full h-full px-4 bg-[#202020] outline outline-1 outline-[#484848] items-center">
-          <span
-            @click="this.open_setting = !this.open_setting;"
-            class="material-symbols-outlined text-slate-100 transition-all duration-200 hover:brightness-75 active:brightness-50 active:scale-95 select-none cursor-pointer">
-            settings
-          </span>
-        </div>
-      </nav>
-      <div class="grid grid-cols-6 gap-2 mt-20 mx-2 mb-2">
-        <connection
-          v-for="(connection, index) in connectionList"
-          :key="index"
-          :localconnection="connection"
-          :localnotiondata="notiondata"></connection>
-      </div>
-      <div
-        v-if="open_setting"
-        class="flex fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-2/5 bg-[#000000] rounded-md">
-        <div class="flex justify-between w-full px-4 py-2 mt-12">
-          <p class="text-slate-100">Refresh rate</p>
-          <custom-input v-model="refresh_rate" class="" />
-        </div>
-        <div class="flex absolute bottom-2 right-2 items-center">
-          <p class="text-yellow-300 text-xs px-2">{{ warning_message }}</p>
-          <button
-            @click="update_config()"
-            class="box-border w-24 h-8 text-sm text-slate-100 bg-[#52b038]/75 px-4 outline outline-1 outline-[#52b038] rounded-md transition-all duration-300 hover:bg-[#52b038]/50 active:bg-[#52b038]/25">
-            Save
-          </button>
-        </div>
-        <span
-          @click="this.open_setting = !this.open_setting;"
-          class="material-symbols-outlined absolute top-2 right-2 text-slate-100 select-none cursor-pointer hover:brightness-75 active:brightness-50 transition-all duration-200">
-          close
-        </span>
-      </div>
-      <configuration-tab
-        v-if="create_con"
-        :localconnection="blank_connection"
-        :localnotiondata="notiondata"
-        :new_con="true"
-        @tab="(tab)=> this.create_con=tab"></configuration-tab>
-      <addbtn @click="create_new_con()"></addbtn>
-    </div>
+    <div id="app"></div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="./script.js"></script>
   </body>
