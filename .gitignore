@@ -3,3 +3,6 @@ node_modules/
 testing/
 oauth/
 .zed
+connections.json
+config.json
+relationTbs/
