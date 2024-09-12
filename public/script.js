@@ -1,6 +1,6 @@
 let app = Vue.createApp({
   template: `
-  <div :key="updateKey">
+  <div>
   <nav class="fixed w-screen h-16 top-0 bg-[#202020] outline outline-1 outline-[#484848]">
   <div
     class="flex flex-row-reverse w-full h-full px-4 bg-[#202020] outline outline-1 outline-[#484848] items-center">
@@ -58,7 +58,6 @@ let app = Vue.createApp({
       load_notiondata: false,
       refresh_rate: 0,
       warning_message: "",
-      updateKey: 0,
     };
   },
   computed: {
@@ -177,9 +176,6 @@ let app = Vue.createApp({
     this.get_connection_data();
     this.get_config_data();
     this.get_notion_data();
-    setInterval(() => {
-      this.updateKey += 1;
-    }, 5000);
   },
 });
 app.component("addbtn", {

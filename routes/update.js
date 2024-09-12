@@ -94,7 +94,11 @@ router.get("/", async (req, res) => {
         if (connection.doneMethod.name == "" || connection.doneMethod.value == "") {
           done = "";
         } else {
-          done = await doneStatus(notionData.results[i], connection.doneMethod.name, connection.doneMethodOption.value);
+          done = await doneStatus(
+            notionData.results[i],
+            connection.doneMethod.name,
+            connection.doneMethodOption.value
+          );
         }
         notionCalEventsList.push({
           page_id: notionData.results[i].id,
@@ -128,20 +132,23 @@ router.get("/", async (req, res) => {
     }
     // Sync notion calendar with google Calendar
     try {
-      await updateFiles(`./relationTbs/relationTb_${connection.calendarId}.json`, async (relationTb) => {
-        if (relationTb == "ENOENT" || !Array.isArray(relationTb)) relationTb = [];
-        const response = await syncCalendar(
-          connection.calendarId,
-          notionCalEventsList,
-          googleCalEventsList,
-          relationTb
-        );
-        relationTb = response.relationTb;
-        let changelog = response.changelog;
-        console.log(`Calendar ID: ${connection.calendarId}`);
-        console.log(`Change log:\n${changelog}`);
-        return relationTb;
-      });
+      await updateFiles(
+        `./relationTbs/relationTb_${connection.calendarId}.json`,
+        async (relationTb) => {
+          if (relationTb == "ENOENT" || !Array.isArray(relationTb)) relationTb = [];
+          const response = await syncCalendar(
+            connection.calendarId,
+            notionCalEventsList,
+            googleCalEventsList,
+            relationTb
+          );
+          relationTb = response.relationTb;
+          let changelog = response.changelog;
+          console.log(`Calendar ID: ${connection.calendarId}`);
+          console.log(`Change log:\n${changelog}`);
+          return relationTb;
+        }
+      );
     } catch (err) {
       console.error(err);
     }
