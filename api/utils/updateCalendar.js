@@ -1,4 +1,4 @@
-const { GoogleCalendarAPI } = require(".././modules/googleCalendarAPICustomFuncs.js");
+const { GoogleCalendarAPI } = require("./googleCalendarAPICustomFuncs.js");
 const path = require("path");
 const calendarClient = new GoogleCalendarAPI({
   credentials_path: path.join(__dirname, "../oauth/credentials.json"),
@@ -42,7 +42,9 @@ async function syncCalendar(calendarId, notionCalEvents, googleCalEvents, relati
   try {
     for (let i = 0; i <= relationTb.length - 1; i++) {
       let notionCalEvent = notionCalEvents.find((event) => event.page_id === relationTb[i].page_id);
-      let googleCalEvent = googleCalEvents.find((event) => event.event_id === relationTb[i].event_id);
+      let googleCalEvent = googleCalEvents.find(
+        (event) => event.event_id === relationTb[i].event_id
+      );
       // Update event if necessary
       if (typeof notionCalEvent != "undefined" && typeof googleCalEvent != "undefined") {
         if (compareEvent(notionCalEvent, googleCalEvent) == false) {
