@@ -1,11 +1,3 @@
 {
-  "ignore": [
-    "./oauth",
-    "./relationTbs",
-    "./.env",
-    "./connections.json",
-    "./relationTb.json",
-    "./config.json",
-    "./dashboard"
-  ]
+  "ignore": ["./authentication", "./database", "./.env"]
 }
