@@ -7,3 +7,4 @@ authentication/token.json
 connections.json
 config.json
 relationTbs/*.json
+database/
