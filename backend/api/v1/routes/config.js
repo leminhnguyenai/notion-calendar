@@ -39,13 +39,22 @@ router.patch(
         busyPatching = false;
         throw new AppError(INVALID_INPUT, "The input must be a number", 405);
       }
-      await updateFile(CONFIG_PATH, () => req.body);
-      const response = await axios.post("http://localhost:6061", {
-        type: "CONFIG",
-        method: "PATCH",
-        data: { refreshRate: refreshRate },
+      const response = await fetch("http://localhost:6061", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "CONFIG",
+          method: "PATCH",
+          data: { refreshRate: refreshRate },
+        }),
       });
-      if (response.status != 200) throw new AppError(400, "Error during processing request", 400);
+
+      if (response.status != 200) {
+        busyPatching = false;
+        throw new AppError(response.status, await response.text(), response.status);
+      }
       res.status(200).send("Updated sucessfully");
       busyPatching = false;
     } catch (err) {

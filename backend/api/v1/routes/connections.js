@@ -39,12 +39,21 @@ router.post(
     const newCon = req.body;
     // Sending change to the jobs handler
     try {
-      const response = await axios.post("http://localhost:6061", {
-        type: "CONNECTION",
+      const response = await fetch("http://localhost:6061", {
         method: "POST",
-        data: newCon,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "CONNECTION",
+          method: "POST",
+          data: newCon,
+        }),
       });
-      if (response.status != 200) throw new AppError(400, "Error during processing request", 400);
+
+      if (response.status != 200) {
+        throw new AppError(response.status, await response.text(), response.status);
+      }
       res.status(200).send("Added sucessfully");
       busyPosting = false;
     } catch (err) {
@@ -60,12 +69,22 @@ router.patch(
     busyPatching = true;
     const updatedCon = req.body;
     try {
-      const response = await axios.post("http://localhost:6061", {
-        type: "CONNECTION",
-        method: "PATCH",
-        data: updatedCon,
+      //TODO change this to using axios without getting error
+      const response = await fetch("http://localhost:6061", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "CONNECTION",
+          method: "PATCH",
+          data: updatedCon,
+        }),
       });
-      if (response.status != 200) throw new AppError(400, "Error during processing request", 400);
+
+      if (response.status != 200) {
+        throw new AppError(response.status, await response.text(), response.status);
+      }
       res.status(200).json("Updated sucessfully");
       busyPatching = false;
     } catch (err) {
@@ -81,12 +100,22 @@ router.delete(
     busyDeleting = true;
     const deletingCalendarId = req.body.calendarId;
     try {
-      const response = await axios.post("http://localhost:6061", {
-        type: "CONNECTION",
-        method: "DELETE",
-        data: { calendarId: deletingCalendarId },
+      //TODO change this to using axios without getting error
+      const response = await fetch("http://localhost:6061", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "CONNECTION",
+          method: "DELETE",
+          data: { calendarId: deletingCalendarId },
+        }),
       });
-      if (response.status != 200) throw new AppError(400, "Error during processing request", 400);
+
+      if (response.status != 200) {
+        throw new AppError(response.status, await response.text(), response.status);
+      }
       res.status(200).send("Deleted");
       busyDeleting = false;
     } catch (err) {

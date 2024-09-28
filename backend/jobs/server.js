@@ -3,15 +3,13 @@ const cors = require("cors");
 const app = express();
 const AppError = require("./AppError.js");
 const backgroundWorks = require("./backgroundWorks.js");
-const handlingJob = require("./handlingJob.js");
+const jobQueue = require("./jobQueue.js");
 const { tryCatch } = require("./utils/tryCatch.js");
 const wait = require("./utils/wait.js");
 const backgroundErrorHandler = require("./middleware/backgroundErrorHandler.js");
 const { watch, reactive, ref } = require("vue");
 const _ = require("lodash");
 const port = 6061;
-
-let jobQueue = reactive([]);
 
 // Route to recieve changes from REST api
 app.use(cors());
@@ -20,57 +18,47 @@ app.use(express.json());
 app.post(
   "/",
   tryCatch(async (req, res) => {
-    let id = `${new Date().toISOString}_${req.body.type}_${req.body.method}`;
+    let id = `${new Date().toISOString()}_${req.body.type}_${req.body.method}`;
     let request = {
       id: id,
       job: req.body,
-      statusCode: undefined,
+      status: null,
     };
-    jobQueue.push(_.cloneDeep(request));
+    jobQueue.activeQueue.push(_.cloneDeep(request));
     console.log("Added to queue");
-    const processingRequest = () => jobQueue.find((rq) => rq.id == id);
-    await wait(() => processingRequest().statusCode !== undefined);
-    if (processingRequest().statusCode == 200) {
+    const response = await jobQueue.response(request.id);
+    if (response.status == 200) {
       console.log("Request processed successfully");
       res.status(200).send("Request processed successfully");
     } else {
-      console.log("Error processing the request");
-      throw new AppError(activeRequest().statusCode, "Error processing the request", 400);
+      console.log(response.error);
+      throw new AppError(
+        response.error.errorCode,
+        response.error.message,
+        response.error.statusCode
+      );
     }
   })
 );
 
 app.use(backgroundErrorHandler);
 
-// Initalize the background process
-backgroundWorks.init().then(async () => {
-  backgroundWorks.createTask();
-  backgroundWorks.startTask();
-});
+// Start the job queue
+jobQueue.init();
 
-// Job queue processor
-let queueProcessing = ref(false);
+app.listen(port, async () => {
+  try {
+    await wait(() => jobQueue.activate);
+    // Initialize the background processes
+    await backgroundWorks.init();
 
-watch(jobQueue, () => (queueProcessing.value = jobQueue.length > 0 ? true : false));
-watch(queueProcessing, async () => {
-  if (queueProcessing.value) {
-    length = jobQueue.length;
-    for (let i = 0; i < length; i++) {
-      try {
-        let job = jobQueue[i].job;
-        await handlingJob.init(job);
-        jobQueue.statusCode = 200;
-      } catch (err) {
-        jobQueue[i].statusCode = 400;
-        console.log(err);
-      }
-      length = jobQueue.length;
-    }
+    // Start the background task
+    backgroundWorks.createTask();
+    backgroundWorks.startTask();
+
+    console.log(`The server is live on http://localhost:${port}`);
+  } catch (err) {
+    console.error("Failed to initialize background processes:", err);
+    process.exit(1);
   }
 });
-
-app.listen(port, () => {
-  console.log(`The server is live on http://localhost:${port}`);
-});
-
-// TODO: Fix bug where faulty request is not processed the right way

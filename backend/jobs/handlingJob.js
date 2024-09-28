@@ -12,18 +12,22 @@ const fs = require("fs").promises;
 
 const handlingJob = {
   async init(job) {
-    const methodMap = {
-      CONNECTION: {
-        POST: async () => await this.connectionPost(job.data),
-        DELETE: async () => await this.connectionDelete(job.data.calendarId),
-        PATCH: async () => await this.connectionPatch(job.data),
-      },
-      CONFIG: {
-        PATCH: async () => await this.configPatch(job.data.refreshRate),
-      },
-    };
-    const handle = methodMap[job.type][job.method];
-    await handle();
+    try {
+      const methodMap = {
+        CONNECTION: {
+          POST: async () => await this.connectionPost(job.data),
+          DELETE: async () => await this.connectionDelete(job.data.calendarId),
+          PATCH: async () => await this.connectionPatch(job.data),
+        },
+        CONFIG: {
+          PATCH: async () => await this.configPatch(job.data.refreshRate),
+        },
+      };
+      const handle = methodMap[job.type][job.method];
+      await handle();
+    } catch (err) {
+      throw err;
+    }
   },
   async connectionPost(newConnection) {
     try {
@@ -82,7 +86,7 @@ const handlingJob = {
       const relationPath = deletingWorkerReference.relationTbPath;
       deletingWorkerReference.retired = true;
       deletingWorkerReference.busy = false;
-      fs.unlink(relationPath);
+      await fs.unlink(relationPath);
       await updateFile(CONS_DB_PATH, (data) => {
         return data.filter((connection) => connection.calendarId != calendarId);
       });
