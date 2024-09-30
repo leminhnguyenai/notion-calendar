@@ -41,6 +41,17 @@ app.post(
   })
 );
 
+app.get(
+  "/status",
+  tryCatch(async (req, res) => {
+    let timeSinceLastSync = new Date() - backgroundWorks.latestSyncedTime;
+    if (typeof timeSinceLastSync != "number") throw new AppError(404, "Error fetching time", 404);
+    timeSinceLastSync /= 1000 * 60;
+    timeSinceLastSync = Math.floor(timeSinceLastSync);
+    res.status(200).json({ timeSinceLastSync });
+  })
+);
+
 app.use(backgroundErrorHandler);
 
 // Start the job queue
@@ -51,12 +62,10 @@ app.listen(port, async () => {
     await wait(() => jobQueue.activate);
     // Initialize the background processes
     await backgroundWorks.init();
-
-    // Start the background task
-    backgroundWorks.createTask();
-    backgroundWorks.startTask();
-
     console.log(`The server is live on http://localhost:${port}`);
+    // Start the background task
+    await backgroundWorks.createTask();
+    backgroundWorks.startTask();
   } catch (err) {
     console.error("Failed to initialize background processes:", err);
     process.exit(1);

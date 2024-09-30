@@ -10,6 +10,8 @@ const backgroundWorks = {
   workers: [],
   refreshRate: null,
   task: null,
+  latestSyncedTime: null,
+  busy: false,
   async init() {
     try {
       await checkFileExistIfNotCreate(CONS_DB_PATH, "[]");
@@ -28,53 +30,62 @@ const backgroundWorks = {
       console.log(err);
     }
   },
-  createTask() {
-    this.task = cron.schedule(
-      `*/${this.refreshRate / 1000} * * * * *`,
-      async () => {
-        try {
-          this.busy = true;
-          let length = this.workers.length;
-          for (let i = 0; i <= length - 1; i++) {
-            // Check for newly added connections and process them first
-            const newLength = this.workers.length;
-            for (let j = length; j <= newLength - 1; j++) {
-              let newlyAddedWorkerReference = this.workers[j];
-              let busy = () => newlyAddedWorkerReference.busy;
-              await wait(() => !busy());
-              if (newlyAddedWorkerReference.retired) {
-                this.workers.splice(j, 1);
-                j--;
-                continue;
-              }
-              await newlyAddedWorkerReference.init();
-            }
-            length = newLength;
-            let workerReference = this.workers[i];
-            let busy = () => workerReference.busy;
-            await wait(() => !busy());
-            if (workerReference.retired) {
-              this.workers.splice(i, 1);
-              length--;
-              i--;
-              continue;
-            }
-            await workerReference.init();
+  async jobToExecute() {
+    if (this.busy) await wait(() => !this.busy);
+    try {
+      this.busy = true;
+      let length = this.workers.length;
+      for (let i = 0; i <= length - 1; i++) {
+        // Check for newly added connections and process them first
+        const newLength = this.workers.length;
+        for (let j = length; j <= newLength - 1; j++) {
+          let newlyAddedWorkerReference = this.workers[j];
+          let busy = () => newlyAddedWorkerReference.busy;
+          await wait(() => !busy());
+          if (newlyAddedWorkerReference.retired) {
+            this.workers.splice(j, 1);
+            j--;
+            continue;
           }
-        } catch (err) {
-          console.log(err);
+          await newlyAddedWorkerReference.init();
         }
-      },
-      { scheduled: false }
+        length = newLength;
+        let workerReference = this.workers[i];
+        let busy = () => workerReference.busy;
+        await wait(() => !busy());
+        if (workerReference.retired) {
+          this.workers.splice(i, 1);
+          length--;
+          i--;
+          continue;
+        }
+        await workerReference.init();
+      }
+      this.latestSyncedTime = new Date();
+      console.log(this.latestSyncedTime);
+      this.busy = false;
+    } catch (err) {
+      this.busy = false;
+      console.log(err);
+    }
+  },
+  async createTask() {
+    await this.jobToExecute().then(() => {});
+    this.task = cron.schedule(
+      `*/${this.refreshRate / (1000 * 60)} * * * *`,
+      this.jobToExecute.bind(this),
+      {
+        scheduled: false,
+      }
     );
   },
   startTask() {
     this.task.start();
   },
-  updateTask(newRefreshRate) {
+  async updateTask(newRefreshRate) {
     this.task.stop();
     this.refreshRate = newRefreshRate;
-    this.createTask();
+    await this.createTask();
     this.startTask();
   },
 };

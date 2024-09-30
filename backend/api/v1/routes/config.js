@@ -4,11 +4,8 @@ const AppError = require("../AppError.js");
 const { INVALID_INPUT } = require("../ErrorCode.js");
 const { CONFIG_PATH } = require("../../../Paths.js");
 const { tryCatch } = require("../utils/tryCatch.js");
-const updateFile = require("../utils/updateFile.js");
 const checkFileExistIfNotCreate = require("../middleware/checkFileExistIfNotCreate.js");
 const configErrorHandler = require("../middleware/configErrorHandler.js");
-const { default: axios } = require("axios");
-const { ref } = require("vue");
 const fs = require("fs").promises;
 
 let busyPatching = false;

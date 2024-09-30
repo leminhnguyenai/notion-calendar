@@ -102,7 +102,7 @@ const handlingJob = {
       data.refreshRate = refreshRate;
       return data;
     });
-    backgroundWorksReference.updateTask(refreshRate);
+    await backgroundWorksReference.updateTask(refreshRate);
     console.log(backgroundWorksReference.refreshRate);
   },
 };
