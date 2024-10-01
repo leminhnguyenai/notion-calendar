@@ -65,6 +65,7 @@ const backgroundWorks = {
       console.log(this.latestSyncedTime);
       this.busy = false;
     } catch (err) {
+      this.latestSyncedTime = undefined;
       this.busy = false;
       console.log(err);
     }

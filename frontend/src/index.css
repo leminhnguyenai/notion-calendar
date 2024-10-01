@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "IBMPlexMono";
+    src: url("./fonts/IBMPlexMono-Light.ttf");
+}
+
 * {
-    font-family: "Montserrat", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-style: normal;
+    font-family: "IBMPlexMono";
 }

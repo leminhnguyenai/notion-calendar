@@ -44,6 +44,8 @@ app.post(
 app.get(
   "/status",
   tryCatch(async (req, res) => {
+    if (backgroundWorks.latestSyncedTime === undefined)
+      throw new AppError(400, "the syncing process is failed", 400);
     let timeSinceLastSync = new Date() - backgroundWorks.latestSyncedTime;
     if (typeof timeSinceLastSync != "number") throw new AppError(404, "Error fetching time", 404);
     timeSinceLastSync /= 1000 * 60;

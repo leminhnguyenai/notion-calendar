@@ -1,20 +1,33 @@
 <template>
     <button
-        :class="dynamic_class[color]"
-        class="flex items-center justify-center box-border px-4 py-2 text-sm select-none cursor-pointer rounded-md transition-all duration-200"
+        :class="theme.init()"
+        class="flex items-center justify-center box-border h-8 w-24 px-4 py-2 bg-opacity-30 outline outline-1 text-sm select-none cursor-pointer rounded-md transition-all duration-200 hover:bg-opacity-20 active:brightness-75 active:duration-75"
     >
-        {{ props.name }}
+        {{ name }}
     </button>
 </template>
 <script setup>
-const props = defineProps({
-    name: String,
-    color: String,
-});
 import { ref } from "vue";
 
-const dynamic_class = ref({
-    red: `text-slate-100 bg-red-600 hover:bg-red-600/75 active:bg-red-600/50`,
-    green: `text-slate-100 bg-[#52b038] hover:bg-[#52b038]/75 active:bg-[#52b038]/50`,
+const { name, color } = defineProps({
+    name: {
+        type: String,
+        default: "",
+    },
+    color: {
+        type: String,
+        default: "gray",
+    },
+});
+
+const theme = ref({
+    orange: "bg-orange-400 outline-orange-400 text-white",
+    green: "bg-green-400 outline-green-400 text-white",
+    gray: "bg-gray-500 outline-gray-500 text-white",
+    init() {
+        const theme = this[color];
+        if (!theme) return "bg-gray-500 outline-gray-500";
+        return theme;
+    },
 });
 </script>
