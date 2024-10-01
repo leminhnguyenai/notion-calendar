@@ -1,3 +1,9 @@
 {
-  "ignore": ["./authentication", "./database", "./.env", "./frontend"]
+  "ignore": [
+    "./authentication",
+    "./database",
+    "./.env",
+    "./frontend",
+    "./frontend/src"
+  ]
 }

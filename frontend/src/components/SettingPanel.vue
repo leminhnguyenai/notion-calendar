@@ -3,12 +3,12 @@
         class="z-30 fixed size-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] opacity-20"
     ></div>
     <div
-        class="flex flex-col z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-3/5 bg-[#252525] outline outline-1 outline-[#484848] rounded-md shadow-md overflow-y-auto"
+        class="flex flex-col z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-full xl:size-3/5 bg-[#252525] outline outline-1 outline-[#484848] rounded-md shadow-md overflow-y-auto"
     >
         <p class="relative m-4 h-8 text-2xl font-semibold text-slate-100">
             Settings
         </p>
-        <div class="relative w-1/2 flex m-4 justify-between">
+        <div class="relative w-4/5 xl:w-1/2 flex m-4 justify-between">
             <p class="relative text-slate-100 text-md font-normal">
                 Refresh rate
             </p>

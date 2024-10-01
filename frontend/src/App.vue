@@ -12,26 +12,41 @@
         v-if="openSetting"
         @close="(close) => (openSetting = !close)"
     ></SettingPanel>
-    <div class="z-10 grid grid-cols-6 gap-2 mt-20 mx-4 mb-2">
+    <div
+        class="z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 mt-20 mx-4 mb-2"
+    >
         <Connection
             v-for="connection in connectionList"
             :key="connection.calendarId"
-            :color="'orange'"
+            :color="getTheme(connection.calendarId)"
             :calendar_name="connection.calendarName"
             :database_name="connection.database.name"
         ></Connection>
+    </div>
+    <div
+        class="fixed bottom-4 right-4 bg-slate-100 rounded-3xl outline outline-1 outline-[#484848] transition-all duration-200 hover:bg-opacity-60 active:brightness-75 active:duration-75 select-none cursor-pointer"
+    >
+        <SquaresPlusIcon class="size-7 m-2"></SquaresPlusIcon>
     </div>
 </template>
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { Cog8ToothIcon } from "@heroicons/vue/24/outline";
+import { Cog8ToothIcon, SquaresPlusIcon } from "@heroicons/vue/24/outline";
 import Connection from "./components/Connection.vue";
 import SyncStatus from "./components/SyncStatus.vue";
 import SettingPanel from "./components/SettingPanel.vue";
+import StringToNum from "./utils/StringToNum.js";
+import getRandomColor from "./utils/getRandomColor.js";
 
 const openSetting = ref(false);
 const connectionList = ref([]);
+
+const getTheme = (calendarId) => {
+    const number = StringToNum(calendarId.slice(0, 4));
+    const remainder = number % 23;
+    return getRandomColor(remainder);
+};
 
 onMounted(async () => {
     try {
