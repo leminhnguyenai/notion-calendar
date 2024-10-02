@@ -1,9 +1,5 @@
 <template>
-    <div
-        ref="dropdown"
-        :class="{ 'scale-105 z-20': visibility }"
-        class="flex flex-col select-none cursor-pointer"
-    >
+    <div ref="dropdown" class="flex flex-col select-none cursor-pointer">
         <div
             @click="changeVisibility()"
             :class="background + ' ' + theme.init()"
@@ -76,6 +72,7 @@ const theme = ref({
     small: "w-40",
     normal: "w-64",
     large: "w-80",
+    full: "w-full",
     init() {
         const selectSize = this[size] || this.normal;
         return selectSize;

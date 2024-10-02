@@ -5,6 +5,9 @@ const dataErrorHandler = require("../middleware/dataErrorHandler.js");
 const { tryCatch } = require("../utils/tryCatch.js");
 const { Client } = require("@notionhq/client");
 const notion = new Client({ auth: NOTION_KEY });
+const cors = require("cors");
+
+router.use(cors());
 
 router.get(
   "/",

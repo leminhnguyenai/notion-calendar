@@ -24,23 +24,40 @@
         ></Connection>
     </div>
     <div
+        @click="openNewConfigTab = true"
         class="fixed bottom-4 right-4 bg-slate-100 rounded-3xl outline outline-1 outline-[#484848] transition-all duration-200 hover:bg-opacity-60 active:brightness-75 active:duration-75 select-none cursor-pointer"
     >
-        <SquaresPlusIcon class="size-7 m-2"></SquaresPlusIcon>
+        <PlusIcon class="size-5 m-3"></PlusIcon>
     </div>
+    <ConfigurationTab
+        v-if="openNewConfigTab"
+        @close="(close) => (openNewConfigTab = !close)"
+    ></ConfigurationTab>
 </template>
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { Cog8ToothIcon, SquaresPlusIcon } from "@heroicons/vue/24/outline";
+import { Cog8ToothIcon, PlusIcon } from "@heroicons/vue/24/outline";
 import Connection from "./components/Connection.vue";
 import SyncStatus from "./components/SyncStatus.vue";
 import SettingPanel from "./components/SettingPanel.vue";
+import ConfigurationTab from "./components/ConfigurationTab.vue";
 import StringToNum from "./utils/StringToNum.js";
 import getRandomColor from "./utils/getRandomColor.js";
 
 const openSetting = ref(false);
+const openNewConfigTab = ref(false);
 const connectionList = ref([]);
+const emptyForm = {
+    calendarName: "",
+    calendarId: "",
+    database: { name: "", value: "" },
+    date: { name: "", value: "" },
+    name: { name: "", value: "" },
+    description: { name: "", value: "" },
+    doneMethod: { name: "", value: "" },
+    doneMethodOption: { name: "", value: "" },
+};
 
 const getTheme = (calendarId) => {
     const number = StringToNum(calendarId.slice(0, 4));

@@ -1,0 +1,89 @@
+<template>
+    <div
+        class="z-30 fixed size-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] opacity-20"
+    ></div>
+    <div
+        class="flex flex-col z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-full xl:size-4/5 bg-[#252525] outline outline-1 outline-[#484848] rounded-md shadow-md overflow-y-auto overflow-x-clip"
+    >
+        <XMarkIcon
+            @click="emit('close', true)"
+            class="absolute top-4 right-4 size-6 text-[#484848] select-none cursor-pointer transition-all duration-100 hover:text-[#606060] active:text-[#252525] active:duration-0"
+        ></XMarkIcon>
+        <CustomSelect
+            v-model="form.database"
+            class="relative mt-16 mx-4"
+            :size="'full'"
+        ></CustomSelect>
+        <div class="w-auto m-4 grid grid-cols-3 gap-4">
+            <div class="flex flex-col col-span-1">
+                <p class="my-4 text-sm text-slate-100 font-medium">
+                    Calendar name
+                </p>
+                <CustomInput
+                    v-model="form.calendarName"
+                    class="mb-4 mr-4 h-8 w-auto"
+                ></CustomInput>
+                <p class="mx-4 w-auto text-slate-100 text-xs">
+                    {{ form }}
+                </p>
+            </div>
+            <div class="flex flex-col col-span-1">
+                <p class="my-4 text-sm text-slate-100 font-medium">Date</p>
+                <CustomSelect
+                    v-model="form.date"
+                    class="mb-4 mr-4"
+                ></CustomSelect>
+                <p class="my-4 text-sm text-slate-100 font-medium">Name</p>
+                <CustomSelect
+                    v-model="form.name"
+                    class="mb-4 mr-4"
+                ></CustomSelect>
+                <p class="my-4 text-sm text-slate-100 font-medium">
+                    Description
+                </p>
+                <CustomSelect
+                    v-model="form.description"
+                    class="mb-4 mr-4"
+                ></CustomSelect>
+            </div>
+            <div class="flex flex-col col-span-1">
+                <p class="my-4 text-sm text-slate-100 font-medium">
+                    Mark as done
+                </p>
+                <CustomSelect
+                    v-model="form.doneMethod"
+                    class="mb-4 mr-4"
+                ></CustomSelect>
+                <p class="my-4 text-sm text-slate-100 font-medium">
+                    Done option
+                </p>
+                <CustomSelect
+                    v-model="form.doneMethodOption"
+                    class="mb-4 mr-4"
+                ></CustomSelect>
+            </div>
+        </div>
+    </div>
+</template>
+<script setup>
+import { ref, reactive, onMounted } from "vue";
+import { XMarkIcon } from "@heroicons/vue/24/solid";
+import axios from "axios";
+import CustomButton from "./CustomButton.vue";
+import CustomSelect from "./CustomSelect.vue";
+import CustomInput from "./CustomInput.vue";
+import PopUp from "./PopUp.vue";
+
+const emit = defineEmits(["close"]);
+const form = ref({
+    calendarName: "",
+    calendarId: "",
+    database: { name: "Choose an option", value: "" },
+    date: { name: "Choose an option", value: "" },
+    name: { name: "Choose an option", value: "" },
+    description: { name: "Choose an option", value: "" },
+    doneMethod: { name: "Choose an option", value: "" },
+    doneMethodOption: { name: "Choose an option", value: "" },
+});
+const reloading = ref(true);
+</script>

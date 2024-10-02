@@ -31,10 +31,10 @@
         ></XMarkIcon>
     </div>
     <PopUp
-        v-if="open"
+        v-if="openPopUp"
         :color="popUpStatus"
         :message="message"
-        @close="(close) => (open = !close)"
+        @close="(close) => (openPopUp = !close)"
         class="fixed z-50 bottom-4 right-4"
     ></PopUp>
 </template>
@@ -75,7 +75,7 @@ const initialRefreshRateObj = reactive({
     value: "",
 });
 const message = ref("");
-const open = ref(false);
+const openPopUp = ref(false);
 const popUpStatus = ref("gray");
 
 const sendNewRefreshRate = async () => {
@@ -89,13 +89,15 @@ const sendNewRefreshRate = async () => {
             refreshRate: refreshRateObj.value,
         });
         console.log(res.data);
+        initialRefreshRateObj.name = refreshRateObj.name;
+        initialRefreshRateObj.value = refreshRateObj.value;
         message.value = res.data;
         popUpStatus.value = "green";
-        open.value = true;
+        openPopUp.value = true;
     } catch (err) {
         message.value = "Error sending request";
         popUpStatus.value = "red";
-        open.value = true;
+        openPopUp.value = true;
         console.error(err);
     }
 };
