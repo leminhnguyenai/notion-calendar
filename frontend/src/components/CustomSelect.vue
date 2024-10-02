@@ -1,5 +1,9 @@
 <template>
-    <div ref="dropdown" class="flex flex-col select-none cursor-pointer">
+    <div
+        ref="dropdown"
+        :class="{ 'z-20': visibility }"
+        class="flex flex-col select-none cursor-pointer"
+    >
         <div
             @click="changeVisibility()"
             :class="background + ' ' + theme.init()"

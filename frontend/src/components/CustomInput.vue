@@ -24,7 +24,7 @@ const { modelValue, canBeInvisible, wordLimit } = defineProps({
     },
     wordLimit: {
         type: Number,
-        default: 0,
+        default: 100,
     },
 });
 
