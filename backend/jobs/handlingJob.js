@@ -42,9 +42,9 @@ const handlingJob = {
       });
       let newWorker = configureWorker(calendarId, newConnection, relationTb, relationTbPath);
       backgroundWorksReference.workers.push(newWorker);
-      if (!backgroundWorksReference.busy) {
+      if (/*!backgroundWorksReference.busy*/ true) {
         backgroundWorksReference.stopTask();
-        backgroundWorksReference.startTask();
+        backgroundWorksReference.createTask();
       }
     } catch (err) {
       throw err;

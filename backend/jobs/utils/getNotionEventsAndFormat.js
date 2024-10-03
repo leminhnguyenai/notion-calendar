@@ -28,12 +28,14 @@ const getNotionEventsAndFormat = async (connection, pageSize = 100) => {
   }
   let formmattedNotionEvents = unformattedNotionEvents.map((result) => {
     let doneStatus = "";
+    let description = "";
     if (doneMethodName != "")
       doneStatus = new MarkAsDone(result, doneMethodName, doneMethodOptionValue).init();
+    if (descriptionName != "") description = new FindData(result, descriptionName).init();
     return {
       page_id: result.id,
       summary: doneStatus + new FindData(result, nameName).init(),
-      description: new FindData(result, descriptionName).init(),
+      description: description,
       created_time: new Date(result.created_time).toISOString(),
       start_date: new Date(result.properties[dateName].date.start).toISOString(),
       end_date: new Date(result.properties[dateName].date.end).toISOString(),
