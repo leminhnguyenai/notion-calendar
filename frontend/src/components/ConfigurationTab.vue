@@ -3,7 +3,7 @@
         class="z-30 fixed size-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#000000] opacity-20"
     ></div>
     <div
-        class="flex flex-col z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-full xl:size-4/5 bg-[#252525] outline outline-1 outline-[#484848] rounded-md shadow-md overflow-y-auto"
+        class="flex flex-col z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full xl:w-2/3 xl:h-4/5 bg-[#252525] outline outline-1 outline-[#484848] rounded-md shadow-md overflow-y-auto"
     >
         <XMarkIcon
             @click="emit('close', true)"
@@ -95,6 +95,13 @@
             </div>
         </div>
     </div>
+    <PopUp
+        v-if="openPopUp"
+        :color="popUpStatus"
+        :message="message"
+        @close="(close) => (openPopUp = !close)"
+        class="fixed z-50 top-4 right-4"
+    ></PopUp>
 </template>
 <script setup>
 import { ref, onMounted, watch } from "vue";
@@ -123,6 +130,9 @@ const sending = ref(false);
 const successfulRequest = ref(false);
 const notionData = ref([]);
 const calendarId = ref("");
+const openPopUp = ref(false);
+const message = ref("");
+const popUpStatus = ref("");
 
 const get_notion_data = async () => {
     loading.value = true;
@@ -184,10 +194,15 @@ const createConnection = async () => {
             console.log(res.data.message);
             calendarId.value = res.data.responseData.calendarId;
             successfulRequest.value = true;
-            sending.value = false;
+            message.value = res.data.message;
+            popUpStatus.value = "green";
+            openPopUp.value = true;
         }
     } catch (err) {
         console.error(err);
+        message.value = err.message;
+        openPopUp.value = true;
+        popUpStatus.value = "red";
         sending.value = false;
     }
 };
