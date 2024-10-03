@@ -71,7 +71,7 @@ const backgroundWorks = {
     }
   },
   async createTask() {
-    await this.jobToExecute().then(() => {});
+    await this.jobToExecute();
     this.task = cron.schedule(
       `*/${this.refreshRate / (1000 * 60)} * * * *`,
       this.jobToExecute.bind(this),
@@ -82,6 +82,9 @@ const backgroundWorks = {
   },
   startTask() {
     this.task.start();
+  },
+  stopTask() {
+    this.task.stop();
   },
   async updateTask(newRefreshRate) {
     this.task.stop();
