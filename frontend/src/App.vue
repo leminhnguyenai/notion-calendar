@@ -31,7 +31,12 @@
     </div>
     <ConfigurationTab
         v-if="openNewConfigTab"
-        @close="(close) => (openNewConfigTab = !close)"
+        @close="
+            (close) => {
+                openNewConfigTab = !close;
+                getConnections();
+            }
+        "
     ></ConfigurationTab>
 </template>
 <script setup>
@@ -48,16 +53,6 @@ import getRandomColor from "./utils/getRandomColor.js";
 const openSetting = ref(false);
 const openNewConfigTab = ref(false);
 const connectionList = ref([]);
-const emptyForm = {
-    calendarName: "",
-    calendarId: "",
-    database: { name: "", value: "" },
-    date: { name: "", value: "" },
-    name: { name: "", value: "" },
-    description: { name: "", value: "" },
-    doneMethod: { name: "", value: "" },
-    doneMethodOption: { name: "", value: "" },
-};
 
 const getTheme = (calendarId) => {
     const number = StringToNum(calendarId.slice(0, 4));
@@ -65,12 +60,14 @@ const getTheme = (calendarId) => {
     return getRandomColor(remainder);
 };
 
-onMounted(async () => {
+const getConnections = async () => {
     try {
         const res = await axios.get("http://localhost:6060/v1/api/connections");
         connectionList.value = JSON.parse(JSON.stringify(res.data));
     } catch (err) {
         console.error(err);
     }
-});
+};
+
+onMounted(getConnections);
 </script>
