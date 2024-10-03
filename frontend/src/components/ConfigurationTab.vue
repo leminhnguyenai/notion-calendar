@@ -17,7 +17,7 @@
             :options="getOptions.database(notionData)"
         ></CustomSelect>
         <div
-            :class="{ 'opacity-100': !reloading && form.database.value != '' }"
+            :class="{ 'opacity-100': !loading && form.database.value != '' }"
             class="w-auto m-4 grid grid-cols-3 gap-4 opacity-0 transition-all duration-500"
         >
             <div class="flex flex-col col-span-1">
@@ -26,11 +26,9 @@
                 </p>
                 <CustomInput
                     v-model="form.calendarName"
+                    :placeholder="form.database.name"
                     class="mb-4 mr-4 h-8 w-auto"
                 ></CustomInput>
-                <p class="mx-4 w-auto text-slate-100 text-xs">
-                    {{ form }}
-                </p>
             </div>
             <div class="flex flex-col col-span-1">
                 <p class="my-4 text-sm text-slate-100 font-medium">Date</p>
@@ -63,13 +61,37 @@
                     :options="getOptions.doneMethod(notionData, form)"
                     class="mb-4 mr-4"
                 ></CustomSelect>
-                <p class="my-4 text-sm text-slate-100 font-medium">
+                <p
+                    :class="{ 'opacity-100': form.doneMethod.value != '' }"
+                    class="my-4 text-sm text-slate-100 font-medium opacity-0 transition-all duration-500"
+                >
                     Done option
                 </p>
                 <CustomSelect
+                    :class="{ 'opacity-100': form.doneMethod.value != '' }"
                     v-model="form.doneMethodOption"
-                    class="mb-4 mr-4"
+                    :options="getOptions.doneMethodOption(notionData, form)"
+                    class="mb-4 mr-4 opacity-0 transition-all duration-500"
                 ></CustomSelect>
+            </div>
+        </div>
+        <div class="sticky buttom-0 flex grow w-full">
+            <div class="flex flex-row absolute bottom-4 right-4 items-center">
+                <CopyBlock
+                    v-if="successfulRequest"
+                    class="mx-4"
+                    :text_to_copy="calendarId"
+                ></CopyBlock>
+                <div
+                    v-if="!successfulRequest"
+                    :class="{ 'animate-ping opacity-100': sending }"
+                    class="mx-4 size-3 rounded-full bg-green-500 opacity-0"
+                ></div>
+                <CustomButton
+                    @click="createConnection()"
+                    :name="'Submit'"
+                    :color="'green'"
+                ></CustomButton>
             </div>
         </div>
     </div>
@@ -83,6 +105,7 @@ import CustomButton from "./CustomButton.vue";
 import CustomSelect from "./CustomSelect.vue";
 import CustomInput from "./CustomInput.vue";
 import PopUp from "./PopUp.vue";
+import CopyBlock from "./CopyBlock.vue";
 
 const emit = defineEmits(["close"]);
 const form = ref({
@@ -95,18 +118,21 @@ const form = ref({
     doneMethod: { name: "Choose an option", value: "" },
     doneMethodOption: { name: "Choose an option", value: "" },
 });
-const reloading = ref(true);
+const loading = ref(true);
+const sending = ref(false);
+const successfulRequest = ref(false);
 const notionData = ref([]);
+const calendarId = ref("");
 
 const get_notion_data = async () => {
-    reloading.value = true;
+    loading.value = true;
     try {
         const res = await axios.get("http://localhost:6060/v1/api/data");
         notionData.value = JSON.parse(JSON.stringify(res)).data;
-        reloading.value = false;
+        loading.value = false;
     } catch (err) {
         console.error(err);
-        reloading.value = false;
+        loading.value = false;
     }
 };
 
@@ -121,7 +147,56 @@ watch(
     },
 );
 
+const createConnection = async () => {
+    try {
+        if (!sending.value) {
+            sending.value = true;
+            // Check if the form is valid
+            const formToCheck = [
+                form.value.calendarName,
+                form.value.date.value,
+                form.value.name.value,
+                form.value.description.value,
+                form.value.doneMethod.value,
+                form.value.doneMethodOption.value,
+            ];
+            if (
+                !formToCheck
+                    .toSpliced(0, 1)
+                    .toSpliced(2, 3)
+                    .every((parameter) => parameter != "")
+            )
+                throw new Error("Missing fields");
+            if (formToCheck[4] != "" && formToCheck[5] == "")
+                throw new Error("Missing fields");
+            // Modify the form before sending
+            let formToSend = JSON.parse(JSON.stringify(form.value));
+            if (formToSend.description.name == "Choose an option")
+                formToSend.description.name = "";
+            if (formToSend.doneMethod.name == "Choose an option")
+                formToSend.doneMethod.name = "";
+            if (formToSend.calendarName == "")
+                formToSend.calendarName = formToSend.database.name;
+            const res = await axios.post(
+                "http://localhost:6060/v1/api/connections",
+                formToSend,
+            );
+            console.log(res.data.message);
+            calendarId.value = res.data.responseData.calendarId;
+            successfulRequest.value = true;
+            sending.value = false;
+        }
+    } catch (err) {
+        console.error(err);
+        sending.value = false;
+    }
+};
+
 onMounted(async () => {
-    await get_notion_data();
+    try {
+        await get_notion_data();
+    } catch (err) {
+        console.error(err);
+    }
 });
 </script>

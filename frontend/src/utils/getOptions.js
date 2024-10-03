@@ -51,7 +51,12 @@ const getOptions = {
     return this.load_options(data, this.nameTypeList, connection);
   },
   description(data, connection) {
-    return this.load_options(data, this.descriptionTypeList, connection);
+    let options = this.load_options(data, this.descriptionTypeList, connection);
+    options.unshift({
+      name: "Choose an option",
+      value: "",
+    });
+    return options;
   },
   doneMethod(data, connection) {
     let options = this.load_options(data, this.doneTypeList, connection);
