@@ -24,7 +24,8 @@ const handlingJob = {
         },
       };
       const handle = methodMap[job.type][job.method];
-      await handle();
+      const res = await handle();
+      return res;
     } catch (err) {
       throw err;
     }
@@ -42,10 +43,11 @@ const handlingJob = {
       });
       let newWorker = configureWorker(calendarId, newConnection, relationTb, relationTbPath);
       backgroundWorksReference.workers.push(newWorker);
-      if (/*!backgroundWorksReference.busy*/ true) {
+      if (!backgroundWorksReference.busy) {
         backgroundWorksReference.stopTask();
         backgroundWorksReference.createTask();
       }
+      return { calendarId };
     } catch (err) {
       throw err;
     }

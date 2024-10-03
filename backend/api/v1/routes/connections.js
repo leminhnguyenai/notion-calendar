@@ -54,7 +54,12 @@ router.post(
       if (response.status != 200) {
         throw new AppError(response.status, await response.text(), response.status);
       }
-      res.status(200).send("Added sucessfully");
+      const jsonResponse = await response.json();
+
+      res.status(200).send({
+        message: "Added sucessfully",
+        responseData: jsonResponse.responseData,
+      });
       busyPosting = false;
     } catch (err) {
       busyPosting = false;

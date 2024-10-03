@@ -18,8 +18,11 @@ const jobQueue = {
     while (this.activate) {
       if (this.activeQueue.length > 0) {
         try {
-          await handlingJob.init(this.activeQueue[0].job);
+          const res = await handlingJob.init(this.activeQueue[0].job);
           this.activeQueue[0].status = 200;
+          if (res) {
+            this.activeQueue[0].responseData = res;
+          }
         } catch (err) {
           this.activeQueue[0].status = 400;
           this.activeQueue[0].error = {

@@ -29,7 +29,9 @@ app.post(
     const response = await jobQueue.response(request.id);
     if (response.status == 200) {
       console.log("Request processed successfully");
-      res.status(200).send("Request processed successfully");
+      res.status(200).json({
+        responseData: response.responseData,
+      });
     } else {
       console.log(response.error);
       throw new AppError(
