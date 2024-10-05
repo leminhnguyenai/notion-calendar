@@ -1,18 +1,36 @@
 <template>
-    <input
-        ref="input"
-        v-model="inputValue"
-        :class="{ 'outline-0 bg-opacity-0': canBeInvisible && !visibility }"
-        @click="visibility = true"
-        type="text"
-        :maxlength="wordLimit"
-        class="flex flex-col box-border justify-center pl-2 rounded-md bg-[#252525] outline outline-1 outline-[#585858] text-xs text-slate-100 overflow-hidden overscroll-none"
-    />
+    <div ref="input" :class="textClass" class="flex flex-col">
+        <input
+            v-model="inputValue"
+            :class="
+                (canBeInvisible && !visibility
+                    ? 'outline-0 bg-opacity-0'
+                    : 'outline-1 bg-opacity-100') +
+                ' ' +
+                textClass
+            "
+            @click="visibility = true"
+            type="text"
+            :maxlength="maxLength"
+            :placeholder="placeholder"
+            class="box-border items-center p-2 rounded-md bg-[#252525] outline outline-[#585858] text-xs text-slate-100 overflow-hidden overscroll-none"
+        />
+        <span v-if="canBeFlexible" class="opacity-0 h-0">
+            {{ inputValue }}</span
+        >
+    </div>
 </template>
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 const emit = defineEmits(["update:modelValue"]);
-const { modelValue, canBeInvisible, wordLimit } = defineProps({
+const {
+    modelValue,
+    canBeInvisible,
+    wordLimit,
+    canBeFlexible,
+    placeholder,
+    textClass,
+} = defineProps({
     modelValue: {
         type: String,
         required: true,
@@ -22,9 +40,21 @@ const { modelValue, canBeInvisible, wordLimit } = defineProps({
         type: Boolean,
         default: false,
     },
+    canBeFlexible: {
+        type: Boolean,
+        default: false,
+    },
     wordLimit: {
         type: Number,
         default: 100,
+    },
+    placeholder: {
+        type: String,
+        default: "",
+    },
+    textClass: {
+        type: String,
+        default: "",
     },
 });
 
@@ -35,9 +65,6 @@ const inputValue = computed({
     set: (value) => {
         emit("update:modelValue", value);
     },
-});
-const inputValueLength = computed(() => {
-    return inputValue.value.length;
 });
 const visibility = ref(true);
 const input = ref(null);
