@@ -8,6 +8,7 @@ const wait = require("./utils/wait.js");
 const { GoogleCalendarAPI } = require("./utils/GoogleCalendarAPI.js");
 const calendarClient = new GoogleCalendarAPI();
 const path = require("path");
+const { calendar } = require("googleapis/build/src/apis/calendar/index.js");
 const fs = require("fs").promises;
 
 const handlingJob = {
@@ -36,12 +37,12 @@ const handlingJob = {
       newConnection.calendarId = calendarId;
       const relationTbPath = path.join(RELATIONS_PATH, `/relationTb_${calendarId}.json`);
       await checkFileExistIfNotCreate(relationTbPath, "[]");
-      let relationTb = JSON.parse(await fs.readFile(relationTbPath, "utf8"));
+      const relationTb = JSON.parse(await fs.readFile(relationTbPath, "utf8"));
       await updateFile(CONS_DB_PATH, (data) => {
         data.push(newConnection);
         return data;
       });
-      let newWorker = configureWorker(calendarId, newConnection, relationTb, relationTbPath);
+      const newWorker = configureWorker(calendarId, newConnection, relationTb, relationTbPath);
       backgroundWorksReference.workers.push(newWorker);
       if (!backgroundWorksReference.busy) {
         backgroundWorksReference.stopTask();
@@ -57,8 +58,10 @@ const handlingJob = {
     const updatingWorkerIndex = backgroundWorksReference.workers.findIndex(
       (worker) => worker.calendarId == calendarId
     );
-    if (updatingWorkerIndex == -1) throw new AppError(404, "Can't find the connection", 404);
-    let updatingWorkerReference = backgroundWorksReference.workers[updatingWorkerIndex];
+    if (updatingWorkerIndex == -1) {
+      throw new AppError(404, "Can't find the connection", 404);
+    }
+    const updatingWorkerReference = backgroundWorksReference.workers[updatingWorkerIndex];
     let busy = () => {
       return updatingWorkerReference.busy;
     };
@@ -67,12 +70,19 @@ const handlingJob = {
     try {
       await updateFile(CONS_DB_PATH, (data) => {
         const connectionIndex = data.findIndex((conn) => conn.calendarId == calendarId);
-        if (connectionIndex == -1) throw new AppError(404, "Can't find the connection in DB", 404);
+        if (connectionIndex == -1) {
+          throw new AppError(404, "Can't find the connection in DB", 404);
+        }
         data[connectionIndex] = updatedConnection;
         return data;
       });
+      await calendarClient.updateCalendar(calendarId, updatedConnection.calendarName);
       updatingWorkerReference.connection = updatedConnection;
       updatingWorkerReference.calendarName = updatedConnection.calendarName;
+      if (!backgroundWorksReference.busy) {
+        backgroundWorksReference.stopTask();
+        backgroundWorksReference.createTask();
+      }
     } catch (err) {
       throw err;
     }
@@ -82,9 +92,11 @@ const handlingJob = {
       const deletingWorkerIndex = backgroundWorksReference.workers.findIndex(
         (worker) => worker.calendarId == calendarId
       );
-      if (deletingWorkerIndex == -1) throw new AppError(404, "Can't find the connection", 404);
-      let deletingWorkerReference = backgroundWorksReference.workers[deletingWorkerIndex];
-      let busy = () => {
+      if (deletingWorkerIndex == -1) {
+        throw new AppError(404, "Can't find the connection", 404);
+      }
+      const deletingWorkerReference = backgroundWorksReference.workers[deletingWorkerIndex];
+      const busy = () => {
         return deletingWorkerReference.busy;
       };
       await wait(() => !busy());
@@ -102,8 +114,9 @@ const handlingJob = {
     }
   },
   async configPatch(refreshRate) {
-    if (typeof refreshRate != "number")
+    if (typeof refreshRate != "number") {
       throw new AppError(400, "The refresh rate must be a number", 404);
+    }
     await updateFile(CONFIG_PATH, (data) => {
       data.refreshRate = refreshRate;
       return data;

@@ -23,6 +23,7 @@ const { name, color } = defineProps({
 const theme = ref({
     orange: "bg-orange-400 outline-orange-400 text-white",
     green: "bg-green-400 outline-green-400 text-white",
+    red: "bg-red-500 outline-red-500 text-white",
     gray: "bg-gray-500 outline-gray-500 text-white",
     init() {
         const theme = this[color];

@@ -56,7 +56,7 @@ router.post(
       }
       const jsonResponse = await response.json();
 
-      res.status(200).send({
+      res.status(200).json({
         message: "Added sucessfully",
         responseData: jsonResponse.responseData,
       });
@@ -90,7 +90,9 @@ router.patch(
       if (response.status != 200) {
         throw new AppError(response.status, await response.text(), response.status);
       }
-      res.status(200).json("Updated sucessfully");
+      res.status(200).json({
+        message: "Updated sucessfully",
+      });
       busyPatching = false;
     } catch (err) {
       busyPatching = false;
@@ -104,6 +106,7 @@ router.delete(
   tryCatch(async (req, res) => {
     busyDeleting = true;
     const deletingCalendarId = req.body.calendarId;
+    console.log(req.body);
     try {
       //TODO change this to using axios without getting error
       const response = await fetch("http://localhost:6061", {
@@ -121,7 +124,9 @@ router.delete(
       if (response.status != 200) {
         throw new AppError(response.status, await response.text(), response.status);
       }
-      res.status(200).send("Deleted");
+      res.status(200).json({
+        message: "Deleted successfully",
+      });
       busyDeleting = false;
     } catch (err) {
       busyDeleting = false;

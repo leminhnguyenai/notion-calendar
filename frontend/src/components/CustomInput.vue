@@ -11,12 +11,12 @@
             "
             @click="visibility = true"
             type="text"
-            :maxlength="maxLength"
+            :maxlength="wordLimit"
             :placeholder="placeholder"
             class="box-border items-center p-2 rounded-md bg-[#252525] outline outline-[#585858] text-xs text-slate-100 overflow-hidden overscroll-none"
         />
-        <span v-if="canBeFlexible" class="opacity-0 h-0">
-            {{ inputValue }}</span
+        <span v-if="canBeFlexible" class="opacity-0 h-0 w-1/3">
+            {{ inputLength }}</span
         >
     </div>
 </template>
@@ -65,6 +65,11 @@ const inputValue = computed({
     set: (value) => {
         emit("update:modelValue", value);
     },
+});
+const inputLength = computed(() => {
+    const inputValueCopy = inputValue.value;
+    inputValueCopy.slice(0, wordLimit);
+    return inputValueCopy;
 });
 const visibility = ref(true);
 const input = ref(null);

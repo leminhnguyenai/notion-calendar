@@ -8,3 +8,4 @@ app.use("/v1", v1);
 app.listen(port, () => {
   console.log(`The server is live on http://localhost:${port}`);
 });
+

@@ -17,6 +17,10 @@
     >
         <Connection
             v-for="connection in connectionList"
+            @click="
+                openNewModTab = true;
+                connectionToModify = JSON.parse(JSON.stringify(connection));
+            "
             :key="connection.calendarId"
             :color="getTheme(connection.calendarId)"
             :calendar_name="connection.calendarName"
@@ -34,10 +38,21 @@
         @close="
             (close) => {
                 openNewConfigTab = !close;
+                // Reload the connection list when this tab is closed
                 getConnections();
             }
         "
     ></ConfigurationTab>
+    <ModificationTab
+        v-if="openNewModTab"
+        :form="connectionToModify"
+        @close="
+            (close) => {
+                openNewModTab = !close;
+                getConnections();
+            }
+        "
+    ></ModificationTab>
 </template>
 <script setup>
 import { ref, onMounted } from "vue";
@@ -47,12 +62,15 @@ import Connection from "./components/Connection.vue";
 import SyncStatus from "./components/SyncStatus.vue";
 import SettingPanel from "./components/SettingPanel.vue";
 import ConfigurationTab from "./components/ConfigurationTab.vue";
+import ModificationTab from "./components/ModificationTab.vue";
 import StringToNum from "./utils/StringToNum.js";
 import getRandomColor from "./utils/getRandomColor.js";
 
 const openSetting = ref(false);
 const openNewConfigTab = ref(false);
+const openNewModTab = ref(false);
 const connectionList = ref([]);
+const connectionToModify = ref(null);
 
 const getTheme = (calendarId) => {
     const number = StringToNum(calendarId.slice(0, 4));

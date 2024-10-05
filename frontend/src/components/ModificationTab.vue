@@ -9,29 +9,30 @@
             @click="emit('close', true)"
             class="absolute top-4 right-4 size-6 text-[#484848] select-none cursor-pointer transition-all duration-100 hover:text-[#606060] active:text-[#252525] active:duration-0"
         ></XMarkIcon>
-        <p class="select-none mt-4 mx-4 text-md text-slate-100 font-semibold">
-            Database
-        </p>
-        <CustomSelect
-            v-model="form.database"
-            class="relative mt-4 mx-4"
-            :size="'full'"
-            :options="getOptions.database(notionData)"
-        ></CustomSelect>
+        <div class="flex flex-col">
+            <div class="flex items-center w-auto m-2">
+                <CustomInput
+                    v-model="form.calendarName"
+                    :placeholder="form.database.name"
+                    :canBeInvisible="true"
+                    :canBeFlexible="true"
+                    :wordLimit="40"
+                    :textClass="'text-lg'"
+                    class="mr-4"
+                ></CustomInput>
+                <CopyBlock
+                    :text_to_copy="form.calendarId"
+                    class="mx-4"
+                ></CopyBlock>
+            </div>
+            <p class="select-none mx-4 text-xs text-slate-100 opacity-60">
+                {{ form.database.name }}
+            </p>
+        </div>
         <div
             :class="{ 'opacity-100': !loading && form.database.value != '' }"
             class="w-auto m-4 grid grid-cols-3 gap-4 opacity-0 transition-all duration-500"
         >
-            <div class="flex flex-col col-span-1">
-                <p class="select-none my-4 text-sm text-slate-100 font-medium">
-                    Calendar name
-                </p>
-                <CustomInput
-                    v-model="form.calendarName"
-                    :placeholder="form.database.name"
-                    class="mb-4 mr-4 h-8 w-auto"
-                ></CustomInput>
-            </div>
             <div class="flex flex-col col-span-1">
                 <p class="select-none my-4 text-sm text-slate-100 font-medium">
                     Date
@@ -83,19 +84,20 @@
         </div>
         <div class="sticky buttom-0 flex grow w-full">
             <div class="flex flex-row absolute bottom-4 right-4 items-center">
-                <CopyBlock
-                    v-if="successfulRequest"
-                    class="mx-4"
-                    :text_to_copy="calendarId"
-                ></CopyBlock>
                 <div
-                    v-if="!successfulRequest"
+                    v-if="!successfulPatchRequest"
                     :class="{ 'animate-ping opacity-100': sending }"
                     class="mx-4 size-3 rounded-full bg-green-500 opacity-0"
                 ></div>
                 <CustomButton
-                    @click="createConnection()"
-                    :name="'Submit'"
+                    @click="deleteConnection()"
+                    :name="'Delete'"
+                    :color="'red'"
+                    class="mr-4"
+                ></CustomButton>
+                <CustomButton
+                    @click="updateconnection()"
+                    :name="'Save'"
                     :color="'green'"
                 ></CustomButton>
             </div>
@@ -121,21 +123,17 @@ import PopUp from "./PopUp.vue";
 import CopyBlock from "./CopyBlock.vue";
 
 const emit = defineEmits(["close"]);
-const form = ref({
-    calendarName: "",
-    calendarId: "",
-    database: { name: "Choose an option", value: "" },
-    date: { name: "Choose an option", value: "" },
-    name: { name: "Choose an option", value: "" },
-    description: { name: "Choose an option", value: "" },
-    doneMethod: { name: "Choose an option", value: "" },
-    doneMethodOption: { name: "Choose an option", value: "" },
+const { form } = defineProps({
+    form: {
+        type: Object,
+        requrired: true,
+    },
 });
+
 const loading = ref(true);
 const sending = ref(false);
-const successfulRequest = ref(false);
+const successfulPatchRequest = ref(false);
 const notionData = ref([]);
-const calendarId = ref("");
 const openPopUp = ref(false);
 const message = ref("");
 const popUpStatus = ref("");
@@ -152,55 +150,75 @@ const get_notion_data = async () => {
     }
 };
 
-watch(
-    () => form.value.database.value,
-    () => {
-        form.value.date = { name: "Choose an option", value: "" };
-        form.value.name = { name: "Choose an option", value: "" };
-        form.value.description = { name: "Choose an option", value: "" };
-        form.value.doneMethod = { name: "Choose an option", value: "" };
-        form.value.doneMethodOption = { name: "Choose an option", value: "" };
-    },
-);
-
-const createConnection = async () => {
+const updateconnection = async () => {
     try {
         if (!sending.value) {
             sending.value = true;
             // Check if the form is valid
             const formToCheck = [
-                form.value.calendarName,
-                form.value.date.value,
-                form.value.name.value,
-                form.value.description.value,
-                form.value.doneMethod.value,
-                form.value.doneMethodOption.value,
+                form.calendarName,
+                form.date.value,
+                form.name.value,
+                form.description.value,
+                form.doneMethod.value,
+                form.doneMethodOption.value,
             ];
             if (
                 !formToCheck
-                    .toSpliced(0, 1)
-                    .toSpliced(2, 3)
+                    .toSpliced(3, 3)
                     .every((parameter) => parameter != "")
             )
                 throw new Error("Missing fields");
             if (formToCheck[4] != "" && formToCheck[5] == "")
                 throw new Error("Missing fields");
             // Modify the form before sending
-            let formToSend = JSON.parse(JSON.stringify(form.value));
+            let formToSend = JSON.parse(JSON.stringify(form));
             if (formToSend.description.name == "Choose an option")
                 formToSend.description.name = "";
-            if (formToSend.doneMethod.name == "Choose an option")
+            if (formToSend.doneMethod.name == "Choose an option") {
                 formToSend.doneMethod.name = "";
+                formToSend.doneMethodOption.name = "";
+                formToSend.doneMethodOption.value = "";
+            }
             if (formToSend.calendarName == "")
                 formToSend.calendarName = formToSend.database.name;
-            const res = await axios.post(
+            const res = await axios.patch(
                 "http://localhost:6060/v1/api/connections",
                 formToSend,
             );
             console.log(res.data.message);
-            calendarId.value = res.data.responseData.calendarId;
-            successfulRequest.value = true;
+            successfulPatchRequest.value = true;
             message.value = res.data.message;
+            popUpStatus.value = "green";
+            openPopUp.value = true;
+        }
+    } catch (err) {
+        console.error(err);
+        message.value = err.message;
+        openPopUp.value = true;
+        popUpStatus.value = "red";
+        sending.value = false;
+    }
+};
+
+const deleteConnection = async () => {
+    try {
+        if (!sending.value) {
+            sending.value = true;
+            let res = await fetch("http://localhost:6060/v1/api/connections", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    calendarId: form.calendarId,
+                }),
+            });
+            res = await res.json();
+
+            console.log(res.message);
+            successfulPatchRequest.value = true;
+            message.value = res.message;
             popUpStatus.value = "green";
             openPopUp.value = true;
         }

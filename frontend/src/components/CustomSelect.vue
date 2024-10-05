@@ -38,7 +38,7 @@
     </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 
 const { size, options, modelValue } = defineProps({
@@ -102,6 +102,8 @@ const updateSelected = (option) => {
 
 onMounted(() => {
     document.addEventListener("click", handleClickOutside);
+    if (modelValue.value == "" && modelValue.name == "")
+        modelValue.name = "Choose an option";
 });
 onBeforeUnmount(() => {
     document.removeEventListener("click", handleClickOutside);
