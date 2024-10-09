@@ -41,6 +41,7 @@ const handlingJob = {
     if (!backgroundWorksReference.busy) {
       backgroundWorksReference.stopTask();
       backgroundWorksReference.createTask();
+      backgroundWorksReference.startTask();
     }
     return { calendarId };
   },
@@ -72,6 +73,7 @@ const handlingJob = {
     if (!backgroundWorksReference.busy) {
       backgroundWorksReference.stopTask();
       backgroundWorksReference.createTask();
+      backgroundWorksReference.startTask();
     }
   },
   async connectionDelete(calendarId) {

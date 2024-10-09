@@ -160,8 +160,9 @@ const updateconnection = async () => {
       if (formToSend.calendarName == "") formToSend.calendarName = formToSend.database.name;
       const columnsToFormat = ["description", "doneMethod", "doneMethodOption"];
       columnsToFormat.forEach((columnToFormat) => {
-        if (formToSend[columnToFormat].name == "Choose an option")
-          formToSend[columnToFormat].name == "";
+        if (formToSend[columnToFormat].name == "Choose an option") {
+          formToSend[columnToFormat].name = "";
+        }
       });
       if (formToSend.calendarName == "") formToSend.calendarName = formToSend.database.name;
       const res = await axios.patch("http://localhost:6060/v1/api/connections", formToSend);
