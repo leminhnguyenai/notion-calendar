@@ -68,7 +68,6 @@ app.listen(port, async () => {
     console.log(`The server is live on http://localhost:${port}`);
     // Start the background task
     await backgroundWorks.createTask();
-    backgroundWorks.startTask();
   } catch (err) {
     console.error("Failed to initialize background processes:", err);
     process.exit(1);

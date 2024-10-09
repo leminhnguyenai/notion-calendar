@@ -41,7 +41,6 @@ const handlingJob = {
     if (!backgroundWorksReference.busy) {
       backgroundWorksReference.stopTask();
       backgroundWorksReference.createTask();
-      backgroundWorksReference.startTask();
     }
     return { calendarId };
   },
@@ -54,26 +53,37 @@ const handlingJob = {
       throw new AppError(404, "Can't find the connection", 404);
     }
     const updatingWorkerReference = backgroundWorksReference.workers[updatingWorkerIndex];
+    // Wait until the worker is free
     const busy = () => {
       return updatingWorkerReference.busy;
     };
     await wait(() => !busy());
-
-    await updateFile(CONS_DB_PATH, (data) => {
-      const connectionIndex = data.findIndex((conn) => conn.calendarId == calendarId);
-      if (connectionIndex == -1) {
-        throw new AppError(404, "Can't find the connection in DB", 404);
+    try {
+      updatingWorkerReference.busy = true;
+      // Update the connection in the database
+      await updateFile(CONS_DB_PATH, (data) => {
+        const connectionIndex = data.findIndex((conn) => conn.calendarId == calendarId);
+        if (connectionIndex == -1) {
+          throw new AppError(404, "Can't find the connection in DB", 404);
+        }
+        data[connectionIndex] = updatedConnection;
+        return data;
+      });
+      // Update the calendar name if needed
+      if (updatedConnection.calendarName != updatingWorkerReference.calendarName)
+        await calendarClient.updateCalendar(calendarId, updatedConnection.calendarName);
+      // Equip wokrer with up to date information
+      updatingWorkerReference.connection = updatedConnection;
+      updatingWorkerReference.calendarName = updatedConnection.calendarName;
+      updatingWorkerReference.busy = false;
+      // Start task immediately if it the syncing interval is currently free
+      if (!backgroundWorksReference.busy) {
+        backgroundWorksReference.stopTask();
+        backgroundWorksReference.createTask();
       }
-      data[connectionIndex] = updatedConnection;
-      return data;
-    });
-    await calendarClient.updateCalendar(calendarId, updatedConnection.calendarName);
-    updatingWorkerReference.connection = updatedConnection;
-    updatingWorkerReference.calendarName = updatedConnection.calendarName;
-    if (!backgroundWorksReference.busy) {
-      backgroundWorksReference.stopTask();
-      backgroundWorksReference.createTask();
-      backgroundWorksReference.startTask();
+    } catch (err) {
+      updatingWorkerReference.busy = false;
+      throw err;
     }
   },
   async connectionDelete(calendarId) {
@@ -84,15 +94,23 @@ const handlingJob = {
       throw new AppError(404, "Can't find the connection", 404);
     }
     const deletingWorkerReference = backgroundWorksReference.workers[deletingWorkerIndex];
+    // Wait until the worker is free
     const busy = () => {
       return deletingWorkerReference.busy;
     };
     await wait(() => !busy());
-    deletingWorkerReference.busy = true;
+    try {
+      deletingWorkerReference.busy = true;
+      deletingWorkerReference.retired = true;
+      deletingWorkerReference.busy = false;
+    } catch (err) {
+      deletingWorkerReference.busy = false;
+      throw err;
+    }
+    // Delete relation table accordingly
     const relationPath = deletingWorkerReference.relationTbPath;
-    deletingWorkerReference.retired = true;
-    deletingWorkerReference.busy = false;
     await fs.unlink(relationPath);
+    // Delete from the connection database
     await updateFile(CONS_DB_PATH, (data) => {
       return data.filter((connection) => connection.calendarId != calendarId);
     });

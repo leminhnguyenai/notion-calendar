@@ -1,10 +1,10 @@
+const { clearInterval } = require("timers");
 const { CONS_DB_PATH, CONFIG_PATH, RELATIONS_PATH } = require("../Paths.js");
 const checkFileExistIfNotCreate = require("./utils/checkFileExistIfNotCreate.js");
 const configureWorker = require("./utils/configureWorker.js");
 const wait = require("./utils/wait.js");
 const fs = require("fs").promises;
 const path = require("path");
-const cron = require("node-cron");
 
 const backgroundWorks = {
   workers: [],
@@ -37,13 +37,15 @@ const backgroundWorks = {
       let length = this.workers.length;
       for (let i = 0; i <= length - 1; i++) {
         // Check for newly added connections and process them first
-        const newLength = this.workers.length;
+        let newLength = this.workers.length;
         for (let j = length; j <= newLength - 1; j++) {
           const newlyAddedWorkerReference = this.workers[j];
           const busy = () => newlyAddedWorkerReference.busy;
           await wait(() => !busy());
+          // if this worker is retired, remove it and move to next worker
           if (newlyAddedWorkerReference.retired) {
             this.workers.splice(j, 1);
+            newLength--;
             j--;
             continue;
           }
@@ -53,6 +55,7 @@ const backgroundWorks = {
         const workerReference = this.workers[i];
         const busy = () => workerReference.busy;
         await wait(() => !busy());
+        // if this worker is retired, remove it and move to next worker
         if (workerReference.retired) {
           this.workers.splice(i, 1);
           length--;
@@ -72,25 +75,16 @@ const backgroundWorks = {
   },
   async createTask() {
     await this.jobToExecute();
-    this.task = cron.schedule(
-      `*/${this.refreshRate / (1000 * 60)} * * * *`,
-      this.jobToExecute.bind(this),
-      {
-        scheduled: false,
-      }
-    );
-  },
-  startTask() {
-    this.task.start();
+    this.task = setInterval(this.jobToExecute.bind(this), this.refreshRate);
   },
   stopTask() {
-    this.task.stop();
+    clearInterval(this.task);
+    this.busy = false;
   },
   async updateTask(newRefreshRate) {
-    this.task.stop();
+    this.stopTask();
     this.refreshRate = newRefreshRate;
     await this.createTask();
-    this.startTask();
   },
 };
 
