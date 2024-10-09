@@ -171,7 +171,7 @@ const createConnection = async () => {
         if (doneMethodProperty.value.type != "checkbox") throw new Error("Missing fields");
       }
       // Modify the form before sending
-      let formToSend = JSON.parse(JSON.stringify(form.value));
+      const formToSend = JSON.parse(JSON.stringify(form.value));
       if (formToSend.calendarName == "") formToSend.calendarName = formToSend.database.name;
       const columnsToFormat = ["description", "doneMethod", "doneMethodOption"];
       columnsToFormat.forEach((columnToFormat) => {

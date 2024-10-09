@@ -9,44 +9,44 @@
     <div class="flex flex-col">
       <div class="flex items-center w-auto m-2">
         <CustomInput
-          v-model="form.calendarName"
-          :placeholder="form.database.name"
+          v-model="formCopy.calendarName"
+          :placeholder="formCopy.database.name"
           :canBeInvisible="true"
           :canBeFlexible="true"
           :wordLimit="40"
           :textClass="'text-lg'"
           class="mr-4"></CustomInput>
-        <CopyBlock :text_to_copy="form.calendarId" class="mx-4"></CopyBlock>
+        <CopyBlock :text_to_copy="formCopy.calendarId" class="mx-4"></CopyBlock>
       </div>
       <p class="select-none mx-4 text-xs text-slate-100 opacity-60">
-        {{ form.database.name }}
+        {{ formCopy.database.name }}
       </p>
     </div>
     <div
-      :class="{ 'opacity-100': !loading && form.database.value != '' }"
+      :class="{ 'opacity-100': !loading && formCopy.database.value != '' }"
       class="w-auto m-4 grid grid-cols-3 gap-4 opacity-0 transition-all duration-500">
       <div class="flex flex-col col-span-1">
         <p class="select-none my-4 text-sm text-slate-100 font-medium">Date</p>
         <CustomSelect
-          v-model="form.date"
-          :options="getOptions.date(notionData, form)"
+          v-model="formCopy.date"
+          :options="getOptions.date(notionData, formCopy)"
           class="mb-4 mr-4"></CustomSelect>
         <p class="select-none my-4 text-sm text-slate-100 font-medium">Name</p>
         <CustomSelect
-          v-model="form.name"
-          :options="getOptions.name(notionData, form)"
+          v-model="formCopy.name"
+          :options="getOptions.name(notionData, formCopy)"
           class="mb-4 mr-4"></CustomSelect>
         <p class="select-none my-4 text-sm text-slate-100 font-medium">Description</p>
         <CustomSelect
-          v-model="form.description"
-          :options="getOptions.description(notionData, form)"
+          v-model="formCopy.description"
+          :options="getOptions.description(notionData, formCopy)"
           class="mb-4 mr-4"></CustomSelect>
       </div>
       <div class="flex flex-col col-span-1">
         <p class="select-none my-4 text-sm text-slate-100 font-medium">Mark as done</p>
         <CustomSelect
-          v-model="form.doneMethod"
-          :options="getOptions.doneMethod(notionData, form)"
+          v-model="formCopy.doneMethod"
+          :options="getOptions.doneMethod(notionData, formCopy)"
           class="mb-4 mr-4"></CustomSelect>
         <p
           :class="{ 'opacity-100': doneMethodOptionCondition() }"
@@ -55,8 +55,8 @@
         </p>
         <CustomSelect
           :class="{ 'opacity-100': doneMethodOptionCondition() }"
-          v-model="form.doneMethodOption"
-          :options="getOptions.doneMethodOption(notionData, form)"
+          v-model="formCopy.doneMethodOption"
+          :options="getOptions.doneMethodOption(notionData, formCopy)"
           class="mb-4 mr-4 opacity-0 transition-all duration-500"></CustomSelect>
       </div>
     </div>
@@ -101,14 +101,17 @@ const { form } = defineProps({
   },
 });
 
+const formCopy = ref(JSON.parse(JSON.stringify(form)));
 const loading = ref(true);
 const sending = ref(false);
 const successfulPatchRequest = ref(false);
 const notionData = ref([]);
 const doneMethodProperty = computed(() => {
-  const database = notionData.value.find((result) => result.databaseId == form.database.value);
+  const database = notionData.value.find(
+    (result) => result.databaseId == formCopy.value.database.value
+  );
   if (typeof database == "undefined") return [];
-  const doneMethodId = form.doneMethod.value;
+  const doneMethodId = formCopy.value.doneMethod.value;
   const doneMethodProperty = Object.values(database.properties).find(
     (property) => property.id == doneMethodId
   );
@@ -142,12 +145,12 @@ const updateconnection = async () => {
       sending.value = true;
       // Check if the form is valid
       const formToCheck = [
-        form.calendarName,
-        form.date.value,
-        form.name.value,
-        form.description.value,
-        form.doneMethod.value,
-        form.doneMethodOption.value,
+        formCopy.value.calendarName,
+        formCopy.value.date.value,
+        formCopy.value.name.value,
+        formCopy.value.description.value,
+        formCopy.value.doneMethod.value,
+        formCopy.value.doneMethodOption.value,
       ];
       if (!formToCheck.toSpliced(3, 3).every((parameter) => parameter != ""))
         throw new Error("Missing fields");
@@ -156,7 +159,7 @@ const updateconnection = async () => {
         if (doneMethodProperty.value.type != "checkbox") throw new Error("Missing fields");
       }
       // Modify the form before sending
-      let formToSend = JSON.parse(JSON.stringify(form));
+      const formToSend = JSON.parse(JSON.stringify(formCopy.value));
       if (formToSend.calendarName == "") formToSend.calendarName = formToSend.database.name;
       const columnsToFormat = ["description", "doneMethod", "doneMethodOption"];
       columnsToFormat.forEach((columnToFormat) => {
@@ -165,6 +168,7 @@ const updateconnection = async () => {
         }
       });
       if (formToSend.calendarName == "") formToSend.calendarName = formToSend.database.name;
+      console.log(formToSend);
       const res = await axios.patch("http://localhost:6060/v1/api/connections", formToSend);
       console.log(res.data.message);
       successfulPatchRequest.value = true;
@@ -191,7 +195,7 @@ const deleteConnection = async () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          calendarId: form.calendarId,
+          calendarId: formCopy.value.calendarId,
         }),
       });
       res = await res.json();
