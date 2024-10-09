@@ -1,6 +1,6 @@
 const AppError = require("../AppError");
 
-const backgroundErrorHandler = (error, req, res, next) => {
+const backgroundErrorHandler = (error, req, res) => {
   if (error instanceof AppError) {
     return res.status(error.statusCode).send(error.message);
   }

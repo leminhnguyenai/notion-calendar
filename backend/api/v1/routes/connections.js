@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const AppError = require("../AppError.js");
-const { NO_CONNECTION_FOUND } = require("../ErrorCode.js");
 const { CONS_DB_PATH } = require("../../../Paths.js");
 const { tryCatch } = require("../utils/tryCatch.js");
-const updateFile = require("../utils/updateFile.js");
 const checkFileExistIfNotCreate = require("../middleware/checkFileExistIfNotCreate.js");
 const connectionsErrorHandler = require("../middleware/connectionsErrorHandler.js");
-const { default: axios } = require("axios");
 const fs = require("fs").promises;
 
 let busyPosting = false;
@@ -37,9 +34,9 @@ router.post(
   tryCatch(async (req, res) => {
     busyPosting = true;
     const newCon = req.body;
-    // Sending change to the jobs handler
+    // Sending change to the jobs queue to be processed by background workers
     try {
-      const response = await fetch("http://localhost:6061", {
+      const jobQueueResponse = await fetch("http://localhost:6061", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,10 +48,14 @@ router.post(
         }),
       });
 
-      if (response.status != 200) {
-        throw new AppError(response.status, await response.text(), response.status);
+      if (jobQueueResponse.status != 200) {
+        throw new AppError(
+          jobQueueResponse.status,
+          await jobQueueResponse.text(),
+          jobQueueResponse.status
+        );
       }
-      const jsonResponse = await response.json();
+      const jsonResponse = await jobQueueResponse.json();
 
       res.status(200).json({
         message: "Added sucessfully",
@@ -74,8 +75,7 @@ router.patch(
     busyPatching = true;
     const updatedCon = req.body;
     try {
-      //TODO change this to using axios without getting error
-      const response = await fetch("http://localhost:6061", {
+      const jobQueueResponse = await fetch("http://localhost:6061", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,8 +87,12 @@ router.patch(
         }),
       });
 
-      if (response.status != 200) {
-        throw new AppError(response.status, await response.text(), response.status);
+      if (jobQueueResponse.status != 200) {
+        throw new AppError(
+          jobQueueResponse.status,
+          await jobQueueResponse.text(),
+          jobQueueResponse.status
+        );
       }
       res.status(200).json({
         message: "Updated sucessfully",
@@ -109,7 +113,7 @@ router.delete(
     console.log(req.body);
     try {
       //TODO change this to using axios without getting error
-      const response = await fetch("http://localhost:6061", {
+      const jobQueueResponse = await fetch("http://localhost:6061", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,8 +125,12 @@ router.delete(
         }),
       });
 
-      if (response.status != 200) {
-        throw new AppError(response.status, await response.text(), response.status);
+      if (jobQueueResponse.status != 200) {
+        throw new AppError(
+          jobQueueResponse.status,
+          await jobQueueResponse.text(),
+          jobQueueResponse.status
+        );
       }
       res.status(200).json({
         message: "Deleted successfully",

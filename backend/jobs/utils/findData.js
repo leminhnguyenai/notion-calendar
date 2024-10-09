@@ -21,63 +21,64 @@ class FindData {
       url: () => this.url(),
     };
 
-    let propertyValue = typeMethodMap[this.type];
+    const propertyValue = typeMethodMap[this.type];
     if (!propertyValue) return "";
     return propertyValue();
   }
   title() {
-    let titleObject = this.property.title[0];
+    const titleObject = this.property.title[0];
     if (!titleObject) return "";
     return titleObject.plain_text;
   }
   formula() {
-    let formula = this.property.formula;
-    let content = formula.boolean || formula.date || formula.number || formula.string || undefined;
+    const formula = this.property.formula;
+    const content =
+      formula.boolean || formula.date || formula.number || formula.string || undefined;
     if (!content) return "";
     return content;
   }
   rich_text() {
-    let richTextObject = this.property.rich_text[0];
+    const richTextObject = this.property.rich_text[0];
     if (!richTextObject) return "";
     return richTextObject.plain_text;
   }
   email() {
-    let email = this.property.email;
+    const email = this.property.email;
     if (!email) return "";
     return `Email: ${email}`;
   }
   files() {
-    let fileObject = this.property.files[0];
+    const fileObject = this.property.files[0];
     if (!fileObject) return "";
     return `File link: ${fileObject.external.url}`;
   }
   select() {
-    let selectObject = this.property.select;
+    const selectObject = this.property.select;
     if (!selectObject) return "";
     return selectObject.name;
   }
   multi_select() {
-    let optionsList = this.property.multi_select.options;
-    if (optionsListlength == 0) return "";
+    const optionsList = this.property.multi_select.options;
+    if (optionsList.length == 0) return "";
     return optionsList.map((option) => option.name).join(", ");
   }
   people() {
-    let peopleList = this.property.people;
+    const peopleList = this.property.people;
     if (peopleList == 0) return "";
     return `names: ${peopleList.map((person) => person.name).join(", ")}`;
   }
   phone_number() {
-    let phoneNumber = this.property.phone_number;
+    const phoneNumber = this.property.phone_number;
     if (!phoneNumber) return "";
     return phoneNumber;
   }
   status() {
-    let status = this.property.status.name;
+    const status = this.property.status.name;
     if (!status) return "";
     return status;
   }
   url() {
-    let url = this.property.url;
+    const url = this.property.url;
     if (!url) return "";
     return url;
   }

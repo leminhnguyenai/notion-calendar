@@ -19,11 +19,11 @@ const backgroundWorks = {
       const connectionsList = JSON.parse(await fs.readFile(CONS_DB_PATH, "utf8"));
       this.refreshRate = JSON.parse(await fs.readFile(CONFIG_PATH, "utf8")).refreshRate;
       for (const connection of connectionsList) {
-        let calendarId = connection.calendarId;
-        let relationTbPath = path.join(RELATIONS_PATH, `/relationTb_${calendarId}.json`);
+        const calendarId = connection.calendarId;
+        const relationTbPath = path.join(RELATIONS_PATH, `/relationTb_${calendarId}.json`);
         await checkFileExistIfNotCreate(relationTbPath, "[]");
-        let relationTb = JSON.parse(await fs.readFile(relationTbPath, "utf8"));
-        let worker = configureWorker(calendarId, connection, relationTb, relationTbPath);
+        const relationTb = JSON.parse(await fs.readFile(relationTbPath, "utf8"));
+        const worker = configureWorker(calendarId, connection, relationTb, relationTbPath);
         this.workers.push(worker);
       }
     } catch (err) {
@@ -39,8 +39,8 @@ const backgroundWorks = {
         // Check for newly added connections and process them first
         const newLength = this.workers.length;
         for (let j = length; j <= newLength - 1; j++) {
-          let newlyAddedWorkerReference = this.workers[j];
-          let busy = () => newlyAddedWorkerReference.busy;
+          const newlyAddedWorkerReference = this.workers[j];
+          const busy = () => newlyAddedWorkerReference.busy;
           await wait(() => !busy());
           if (newlyAddedWorkerReference.retired) {
             this.workers.splice(j, 1);
@@ -50,8 +50,8 @@ const backgroundWorks = {
           await newlyAddedWorkerReference.init();
         }
         length = newLength;
-        let workerReference = this.workers[i];
-        let busy = () => workerReference.busy;
+        const workerReference = this.workers[i];
+        const busy = () => workerReference.busy;
         await wait(() => !busy());
         if (workerReference.retired) {
           this.workers.splice(i, 1);

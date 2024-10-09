@@ -2,8 +2,8 @@ const { GoogleCalendarAPI } = require("./GoogleCalendarAPI.js");
 const calendarClient = new GoogleCalendarAPI();
 
 const getGoogleCalendarEventsAndFormat = async (calendarId) => {
-  let unformattedGoogleCalEvents = await calendarClient.getEvents(calendarId);
-  let formmattedGoogleCalEvents = unformattedGoogleCalEvents.map((result) => {
+  const unformattedGoogleCalEvents = await calendarClient.getEvents(calendarId);
+  const formmattedGoogleCalEvents = unformattedGoogleCalEvents.map((result) => {
     return {
       event_id: result.id,
       summary: result.summary,

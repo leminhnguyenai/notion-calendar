@@ -16,7 +16,7 @@ const getOptions = {
     "url",
     "title",
   ],
-  doneTypeList: ["select", "status"],
+  doneTypeList: ["select", "status", "checkbox"],
   database(data) {
     const databaseOptionsList = data.map((result) => {
       return {
@@ -76,12 +76,13 @@ const getOptions = {
       (property) => property.id == doneMethodId,
     );
     if (typeof doneMethodProperty == "undefined") return [];
-    let options = doneMethodProperty.select.options.map((option) => {
-      return {
-        name: option.name,
-        value: option.id,
-      };
-    });
+    if (doneMethodProperty.type == "checkbox")return [];
+      let options = doneMethodProperty.select.options.map((option) => {
+        return {
+          name: option.name,
+          value: option.id,
+        };
+      });
     return options;
   },
 };

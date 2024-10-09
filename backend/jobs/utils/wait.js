@@ -1,6 +1,6 @@
 const wait = async (condition) => {
   return new Promise((resolve) => {
-    let listener = setInterval(() => {
+    const listener = setInterval(() => {
       if (condition()) {
         clearInterval(listener);
         resolve();

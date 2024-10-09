@@ -5,8 +5,8 @@ const jobQueue = {
   processedQueue: [],
   activate: false,
   async response(id) {
-    let processing = true;
-    let targetRequest = () => this.processedQueue.find((job) => job.id == id);
+    const processing = true;
+    const targetRequest = () => this.processedQueue.find((job) => job.id == id);
     while (processing) {
       if (targetRequest()) {
         return targetRequest();

@@ -7,7 +7,6 @@ const jobQueue = require("./jobQueue.js");
 const { tryCatch } = require("./utils/tryCatch.js");
 const wait = require("./utils/wait.js");
 const backgroundErrorHandler = require("./middleware/backgroundErrorHandler.js");
-const { watch, reactive, ref } = require("vue");
 const _ = require("lodash");
 const port = 6061;
 
@@ -18,8 +17,8 @@ app.use(express.json());
 app.post(
   "/",
   tryCatch(async (req, res) => {
-    let id = `${new Date().toISOString()}_${req.body.type}_${req.body.method}`;
-    let request = {
+    const id = `${new Date().toISOString()}_${req.body.type}_${req.body.method}`;
+    const request = {
       id: id,
       job: req.body,
       status: null,

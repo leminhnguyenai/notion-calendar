@@ -1,6 +1,6 @@
 const AppError = require("../AppError");
 
-const connectionsErrorHandler = (error, req, res, next) => {
+const connectionsErrorHandler = (error, req, res) => {
   if (error instanceof AppError) {
     console.log(error);
     return res.status(error.statusCode).send(error.message);

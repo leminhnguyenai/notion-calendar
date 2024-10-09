@@ -36,7 +36,8 @@ router.patch(
         busyPatching = false;
         throw new AppError(INVALID_INPUT, "The input must be a number", 405);
       }
-      const response = await fetch("http://localhost:6061", {
+      // Sending change to the jobs queue to be processed by background workers
+      const jobQueueResponse = await fetch("http://localhost:6061", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,14 +49,18 @@ router.patch(
         }),
       });
 
-      if (response.status != 200) {
+      if (jobQueueResponse.status != 200) {
         busyPatching = false;
-        throw new AppError(response.status, await response.text(), response.status);
+        throw new AppError(
+          jobQueueResponse.status,
+          await jobQueueResponse.text(),
+          jobQueueResponse.status
+        );
       }
       res.status(200).send("Updated sucessfully");
       busyPatching = false;
     } catch (err) {
-      busyPosting = false;
+      busyPatching = false;
       throw err;
     }
   })

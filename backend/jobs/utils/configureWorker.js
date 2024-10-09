@@ -16,20 +16,18 @@ const configureWorker = (calendarId, connection, relationTb, relationTbPath) => 
       if (!this.busy) {
         this.busy = true;
         try {
-          let formattedNotionEvents;
-          let formmattedGoogleCalEvents;
-          [formattedNotionEvents, formmattedGoogleCalEvents] = await Promise.all([
+          const [formattedNotionEvents, formmattedGoogleCalEvents] = await Promise.all([
             getNotionEventsAndFormat(this.connection),
             getGoogleCalendarEventsAndFormat(this.calendarId),
           ]);
           // Update the calendar
-          let { updatedRelationTb, statistic } = await syncCalendar(
+          const { updatedRelationTb, statistic } = await syncCalendar(
             this.calendarId,
             formattedNotionEvents,
             formmattedGoogleCalEvents,
             this.relationTb
           );
-          await updateFile(this.relationTbPath, (data) => {
+          await updateFile(this.relationTbPath, () => {
             return updatedRelationTb;
           });
           this.relationTb = updatedRelationTb;

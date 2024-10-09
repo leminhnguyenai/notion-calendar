@@ -14,7 +14,7 @@ class MarkAsDone {
       select: () => this.select(),
       status: () => this.status(),
     };
-    let propertyValue = typeMethodMap[this.type];
+    const propertyValue = typeMethodMap[this.type];
     if (!propertyValue) return "";
     return propertyValue();
   }
@@ -23,12 +23,12 @@ class MarkAsDone {
     return "✅ ";
   }
   select() {
-    let optionId = this.property[this.type].id;
+    const optionId = this.property[this.type].id;
     if (optionId != this.id) return "";
     return "✅ ";
   }
   status() {
-    let optionId = this.property[this.type].id;
+    const optionId = this.property[this.type].id;
     if (optionId != this.id) return "";
     return "✅ ";
   }

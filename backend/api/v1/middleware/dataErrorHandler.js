@@ -1,4 +1,4 @@
-const dataErrorHandler = (error, req, res, next) => {
+const dataErrorHandler = (error, req, res) => {
   console.log(error);
   if (error.code == "ENOTFOUND") {
     return res.status(502).send(error.message);
