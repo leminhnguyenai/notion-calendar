@@ -1,2 +1,0 @@
-exports.NO_CONNECTION_FOUND = "NCF";
-exports.INVALID_INPUT = "II";
