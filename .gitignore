@@ -1,5 +1,5 @@
 node_modules
 .env
-testing
+demo
 authentication/credentials.json
 authentication/token.json

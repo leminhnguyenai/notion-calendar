@@ -7,12 +7,9 @@ export const connectionsErrorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  if (err instanceof BaseError) {
-    console.log(err);
-    res.status(err.statusCode).send(err.message);
-    next();
-  }
   console.log(err);
-  res.status(400).send(err.message);
+  if (err instanceof BaseError) {
+    res.status(err.statusCode).send(err.message);
+  } else res.status(400).send(err.message);
   next();
 };

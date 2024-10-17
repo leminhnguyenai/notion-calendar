@@ -23,18 +23,17 @@ ALTER TABLE relations
 ADD FOREIGN KEY (calendar_id) REFERENCES connections(calendar_id);
 
 INSERT INTO connections VALUES (
-    'e6f352d04935bd2e95f3d4c8a8f70b7eb3ef1a0788956694458def155e8f3dbd@group.calendar.google.com',
+    'e6f352d04935bd2e95f3c8a8f70b7eb3ef1a0788956694458def155e8f3dbd@group.calendar.google.com',
     'Notion projects',
-    '{"date": {
+    '{
       "name": "Due Date",
       "value": "eD%3DI"
-    }}',
-    '{"name": {
+    }',
+    '{
       "name": "Name",
       "value": "title"
-    }}',
+    }',
     NULL,
     NULL,
     NULL
 );
-
