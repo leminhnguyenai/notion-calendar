@@ -1,18 +1,4 @@
 {
-  "sqltools.connections": [
-    {
-      "mysqlOptions": {
-        "authProtocol": "default",
-        "enableSsl": "Disabled"
-      },
-      "previewLimit": 50,
-      "server": "localhost",
-      "port": 3306,
-      "driver": "MySQL",
-      "name": "myconnection",
-      "database": "notion_calendar",
-      "username": "root",
-      "askForPassword": true
-    }
-  ]
+    "git.ignoreLimitWarning": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
