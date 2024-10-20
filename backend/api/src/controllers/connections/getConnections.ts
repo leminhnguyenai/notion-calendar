@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
-import mysql, { ConnectionOptions } from "mysql2/promise";
-import formattConnection from "../../utils/formattConnections";
-import path from "path";
 import dotenv from "dotenv";
+import { NextFunction, Request, Response } from "express";
+import mysql, { ConnectionOptions } from "mysql2/promise";
+import path from "path";
 import { UnformattedConnType } from "../../@types/connections";
 import { isUnformattedConn } from "../../@types/isUnformattedConn";
 import { SqlError } from "../../Errors";
+import formatConnection from "../../utils/formattConnections";
 dotenv.config({ path: path.join(__dirname, "../../../../config/.env") });
 const access: ConnectionOptions = {
     host: "localhost",
@@ -25,7 +25,7 @@ const getConnections = async (req: Request, res: Response, next: NextFunction): 
         const formattedConns = (results as []).map((unformattedConn: UnformattedConnType) => {
             if (!isUnformattedConn(unformattedConn))
                 throw new SqlError("Invalid query results", 400);
-            return formattConnection(unformattedConn);
+            return formatConnection(unformattedConn);
         });
         res.status(200).json(formattedConns);
     } catch (err) {

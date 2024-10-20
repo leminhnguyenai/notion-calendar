@@ -1,6 +1,6 @@
-import { UnformattedConnType, FormattedConnType } from "../@types/connections";
+import { FormattedConnType, UnformattedConnType } from "../@types/connections";
 
-function formattConnection(connection: UnformattedConnType): FormattedConnType {
+function formatConnection(connection: UnformattedConnType): FormattedConnType {
     const formattedConn: FormattedConnType = {
         calendarId: connection.calendar_id,
         calendarName: connection.calendar_name,
@@ -14,4 +14,4 @@ function formattConnection(connection: UnformattedConnType): FormattedConnType {
     return formattedConn;
 }
 
-export default formattConnection;
+export default formatConnection;

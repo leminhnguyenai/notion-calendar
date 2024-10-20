@@ -12,7 +12,8 @@ function isJob(obj: unknown): obj is Job {
             (obj as Job).method == "PATCH" ||
             (obj as Job).method == "DELETE") &&
         ((obj as Job).type == "CONNECTION" || (obj as Job).type == "CONFIG") &&
-        (isFormattedConn((obj as Job).data) || typeof (obj as Job).data == "object")
+        (isFormattedConn((obj as Job).data) ||
+            typeof (obj as Job).data == "object")
     );
 }
 
