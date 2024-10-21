@@ -3,6 +3,7 @@ import path from "path";
 import { Job } from "../@types/JobRequest";
 import deleteConnections from "../controllers/deleteConnections";
 import patchConnections from "../controllers/patchConnections";
+import patchSetting from "../controllers/patchSetting";
 import postConnections from "../controllers/postConnections";
 dotenv.config({ path: path.join(__dirname, "../../../config/.env") });
 
@@ -20,6 +21,9 @@ const jobHandling = {
                 PATCH: async () => await this.patchConnections(job.data),
                 DELETE: async () => await this.deleteConnections(job.data),
             },
+            CONFIG: {
+                PATCH: async () => await this.patchSetting(job.data),
+            },
         };
         const handle = methodMap[job.type][job.method];
         const res = await handle();
@@ -28,5 +32,6 @@ const jobHandling = {
     postConnections,
     patchConnections,
     deleteConnections,
+    patchSetting,
 };
 export default jobHandling;

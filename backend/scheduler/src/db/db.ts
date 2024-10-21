@@ -2,7 +2,9 @@ import dotenv from "dotenv";
 import mysql, { Pool, PoolOptions } from "mysql2/promise";
 import path from "path";
 import { FormattedConnType } from "../@types/connections";
+import { Setting } from "../@types/settings";
 import { deleteConnInDb, patchConnInDb, postConnToDb } from "./connections";
+import { patchSettinginDb } from "./relations";
 dotenv.config({ path: path.join(__dirname, "../../../config/.env") });
 
 const access: PoolOptions = {
@@ -25,6 +27,9 @@ type Db = {
         post: (newConn: FormattedConnType) => Promise<void>;
         patch: (updatedConn: FormattedConnType) => Promise<void>;
         delete: (deletedCalendarId: string) => Promise<void>;
+    };
+    relation: {
+        patch: (newSetting: Setting) => Promise<void>;
     };
     //* Add one later for relation
 };
@@ -58,6 +63,9 @@ const db: Db = {
         post: (newConn: FormattedConnType) => controller(postConnToDb, newConn),
         patch: (updatedConn: FormattedConnType) => controller(patchConnInDb, updatedConn),
         delete: (deletedCalendarId: string) => controller(deleteConnInDb, deletedCalendarId),
+    },
+    relation: {
+        patch: (newSetting: Setting) => controller(patchSettinginDb, newSetting),
     },
 };
 

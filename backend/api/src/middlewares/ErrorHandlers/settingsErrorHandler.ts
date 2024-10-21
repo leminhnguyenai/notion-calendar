@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseError, SqlError } from "../../Errors";
 
-const connectionsErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+const settingsErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
     console.log(err);
     if (err instanceof BaseError) {
         res.status(err.statusCode).send(err.message);
@@ -11,4 +11,4 @@ const connectionsErrorHandler = (err: Error, req: Request, res: Response, next: 
     next();
 };
 
-export default connectionsErrorHandler;
+export default settingsErrorHandler;

@@ -22,6 +22,7 @@ const getConnections = async (req: Request, res: Response, next: NextFunction): 
     try {
         const conn = await mysql.createConnection(access);
         const [results] = await conn.query("SELECT * FROM connections ORDER BY calendar_name ASC");
+        await conn.end();
         const formattedConns = (results as []).map((unformattedConn: UnformattedConnType) => {
             if (!isUnformattedConn(unformattedConn))
                 throw new SqlError("Invalid query results", 400);

@@ -1,4 +1,19 @@
 {
     "git.ignoreLimitWarning": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "notion_calendar",
+            "database": "notion_calendar",
+            "username": "root"
+        }
+    ]
 }
