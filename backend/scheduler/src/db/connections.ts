@@ -15,3 +15,19 @@ export const postConnToDb = async (pool: Pool, newConn: FormattedConnType): Prom
         JSON.stringify(newConn.doneMethodOption) || null,
     ]);
 };
+
+export const patchConnInDb = async (pool: Pool, updatedConn: FormattedConnType): Promise<void> => {
+    if (!isFormattedConn(updatedConn)) throw new BaseError("Invalid input connection", 400);
+    await pool.query(
+        "UPDATE connections SET calendar_name = ?, date = ?, name = ?, description = ?, done_method = ?, done_method_option = ? WHERE calendar_id = ?",
+        [
+            updatedConn.calendarName,
+            JSON.stringify(updatedConn.date),
+            JSON.stringify(updatedConn.name),
+            JSON.stringify(updatedConn.description) || null,
+            JSON.stringify(updatedConn.doneMethod) || null,
+            JSON.stringify(updatedConn.doneMethodOption) || null,
+            updatedConn.calendarId,
+        ]
+    );
+};

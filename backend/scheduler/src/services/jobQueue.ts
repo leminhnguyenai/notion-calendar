@@ -38,7 +38,10 @@ class JobQueue implements JobQueueType {
                     );
                     const jobRes = await jobHandling.init(processedReq.job);
                     processedReq.status = 200;
-                    if (processedReq.status == 200) processedReq.respondData = jobRes;
+                    if (processedReq.status == 200) {
+                        if (jobRes) processedReq.respondData = jobRes;
+                        else processedReq.respondData = {};
+                    }
                     this.processedQueue.push(processedReq);
                 } catch (err) {
                     const failedReq: JobRequest = JSON.parse(JSON.stringify(this.activeQueue[0]));
@@ -55,7 +58,10 @@ class JobQueue implements JobQueueType {
                     this.processedQueue.push(failedReq);
                 }
                 this.activeQueue.splice(0, 1);
-            } else this.activate = false;
+            } else {
+                // this.activate = false;
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
         }
     }
 
@@ -65,7 +71,6 @@ class JobQueue implements JobQueueType {
             this.processedQueue.find((req: JobRequest) => req.id == id);
         while (processing) {
             if (targetRequest()) processing = false;
-            // else await new Promise((resolve) => setTimeout(resolve, 100));
             else await new Promise((resolve) => setTimeout(resolve, 50));
         }
         const finalRequest = targetRequest();
