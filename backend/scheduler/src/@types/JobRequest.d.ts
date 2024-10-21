@@ -1,9 +1,13 @@
 import { FormattedConnType } from "./connections";
 
+export type CalIdObj = {
+    calendarId: string;
+};
+
 export type Job = {
     type: string;
     method: string;
-    data: object | FormattedConnType;
+    data: FormattedConnType | CalIdObj;
 };
 
 export type SendingRequest = {

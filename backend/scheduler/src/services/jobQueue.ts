@@ -59,8 +59,7 @@ class JobQueue implements JobQueueType {
                 }
                 this.activeQueue.splice(0, 1);
             } else {
-                // this.activate = false;
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                this.activate = false;
             }
         }
     }

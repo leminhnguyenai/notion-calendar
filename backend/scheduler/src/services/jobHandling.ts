@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import path from "path";
 import { Job } from "../@types/JobRequest";
-import { FormattedConnType } from "../@types/connections";
+import deleteConnections from "../controllers/deleteConnections";
 import patchConnections from "../controllers/patchConnections";
 import postConnections from "../controllers/postConnections";
 dotenv.config({ path: path.join(__dirname, "../../../config/.env") });
@@ -16,8 +16,9 @@ const jobHandling = {
     async init(job: Job) {
         const methodMap: MethodMap = {
             CONNECTION: {
-                POST: async () => await this.postConnections(job.data as FormattedConnType),
-                PATCH: async () => await this.patchConnections(job.data as FormattedConnType),
+                POST: async () => await this.postConnections(job.data),
+                PATCH: async () => await this.patchConnections(job.data),
+                DELETE: async () => await this.deleteConnections(job.data),
             },
         };
         const handle = methodMap[job.type][job.method];
@@ -26,5 +27,6 @@ const jobHandling = {
     },
     postConnections,
     patchConnections,
+    deleteConnections,
 };
 export default jobHandling;

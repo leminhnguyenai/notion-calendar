@@ -31,3 +31,7 @@ export const patchConnInDb = async (pool: Pool, updatedConn: FormattedConnType):
         ]
     );
 };
+
+export const deleteConnInDb = async (pool: Pool, deletedCalendarId: string): Promise<void> => {
+    await pool.query("DELETE FROM connections WHERE calendar_id = ?", [deletedCalendarId]);
+};

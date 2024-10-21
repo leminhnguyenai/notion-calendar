@@ -79,5 +79,22 @@ describe("Job Queue testing", () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
         expect(sucesfull).toBe(true);
-    });
+    }, 10000);
+    test("Deleting 3 calendars", async () => {
+        let sucesfull: boolean = true;
+        for (let index = 1; index <= 5; index += 2) {
+            const deleteCalId: string = `calendar_${index}`;
+            try {
+                const delRes = await request(app).delete("/connections").send({
+                    calendarId: deleteCalId,
+                });
+                if (delRes.status !== 200) sucesfull = false;
+            } catch (err) {
+                console.log(err);
+                sucesfull = false;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        expect(sucesfull).toBe(true);
+    }, 10000);
 });
