@@ -15,5 +15,9 @@
             "database": "notion_calendar",
             "username": "root"
         }
-    ]
+    ],
+    "terminal.integrated.defaultLocation": "view",
+    "terminal.integrated.tabs.defaultIcon": "terminal",
+    "terminal.integrated.tabs.defaultColor": null,
+    "terminal.integrated.tabs.enableAnimation": true
 }
