@@ -6,8 +6,7 @@ import {
 import dotenv from "dotenv";
 import path from "path";
 import NotionEvent from "../@types/NotionEvent";
-import MarkAsDone from "./MarkAsDone";
-import FindNotionData from "./findNotionData";
+import formatToNotionEvents from "./formatToNotionEvent";
 dotenv.config({ path: path.join(__dirname, "../../../config/.env") });
 const notion = new Client({ auth: process.env.NOTION_KEY });
 
@@ -55,53 +54,10 @@ class NotionDbApi implements notionDbApiType {
             queryResults = queryResults.concat(filteredData);
         }
         // return a formatted version of notion events
-        return queryResults.map((unformattedEvent) => {
-            const data = new FindNotionData(unformattedEvent);
-            let status: string;
-            let description: string;
-            // If no optional property is included, then status and description will be blank
-            if (!optionalProps) {
-                status = "";
-                description = "";
-            } else {
-                // Else we will alter description and status based on the query result
-                status = optionalProps.doneMethodName
-                    ? new MarkAsDone(unformattedEvent).getDoneStatus(
-                          optionalProps.doneMethodName,
-                          optionalProps.doneMethodOptionId
-                      )
-                    : "";
-                description = optionalProps.descriptionName
-                    ? data.getData(optionalProps.descriptionName)
-                    : "";
-            }
-            // Gather and construct formatted notion event
-            const formattedEvent: NotionEvent = {
-                id: unformattedEvent.id,
-                title: status + data.getData(titleName),
-                description,
-                created_time: unformattedEvent.created_time,
-                startDate: data.getData(dateName, "start"),
-                endDate: data.getData(dateName, "end"),
-            };
-            return formattedEvent;
-        });
+        return queryResults.map((unformattedEvent) =>
+            formatToNotionEvents(unformattedEvent, dateName, titleName, optionalProps)
+        );
     }
 }
-
-(async () => {
-    const notionClient = new NotionDbApi();
-    console.log(
-        await notionClient.getPagesFromDb(
-            "fe62e687-5fa5-4b2f-b8cb-8e4bd4a1eb65",
-            "Name",
-            "Due Date",
-            {
-                doneMethodName: "Status",
-                doneMethodOptionId: "Jqhn",
-            }
-        )
-    );
-})();
 
 export default NotionDbApi;

@@ -2,7 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import { calendar_v3, google } from "googleapis";
 import GoogleEvent from "../@types/googleEvent";
 import { BaseError } from "../Errors";
-import formattToGoogleEvent from "./formattToGoogleEvent";
+import formattToGoogleEvent from "./formatToGoogleEvent";
 import getAuthenticationClient from "./getAuthenticationClient";
 
 interface GoogleCalApiType {
