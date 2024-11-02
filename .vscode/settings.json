@@ -1,6 +1,6 @@
 {
-    "git.ignoreLimitWarning": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnPaste": true,
     "sqltools.connections": [
         {
             "mysqlOptions": {
@@ -11,13 +11,10 @@
             "server": "localhost",
             "port": 3306,
             "driver": "MySQL",
-            "name": "notion_calendar",
+            "name": "notion calendar",
             "database": "notion_calendar",
             "username": "root"
         }
     ],
-    "terminal.integrated.defaultLocation": "view",
-    "terminal.integrated.tabs.defaultIcon": "terminal",
-    "terminal.integrated.tabs.defaultColor": null,
-    "terminal.integrated.tabs.enableAnimation": true
+    "terminal.explorerKind": "integrated"
 }
