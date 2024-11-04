@@ -26,6 +26,11 @@ export interface NewNotionConnection extends RowDataPacket {
     done_method_option?: Option;
 }
 
+export interface NotionConnectionSetting extends RowDataPacket {
+    sync_rate: number;
+    statistic: boolean;
+}
+
 export interface User extends RowDataPacket {
     user_id: number;
     email: string;
@@ -40,4 +45,4 @@ export interface CustomRequest extends Request {
     };
 }
 
-type FuncType = "db" | "fetch_notion" | "fetch_google";
+export type FuncType = "db" | "fetch_notion" | "fetch_google";

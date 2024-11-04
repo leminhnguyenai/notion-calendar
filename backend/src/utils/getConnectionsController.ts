@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
 import mysql, { Pool } from "mysql2/promise";
-import { CustomRequest, NotionConnection, User } from "../@types";
+import { CustomRequest, NotionConnection, NotionConnectionSetting, User } from "../@types";
 import { BaseError } from "../Errors";
 import { poolOption } from "../config/db";
 import MessageQueue from "../services/messageQueue";
@@ -20,8 +20,22 @@ export const getConnectionsController = async (
         );
         if (users.length !== 1) throw new BaseError("", "Error finding user", 400);
         const [connections] = await msgQueue.enqueue(() =>
-            pool.query<NotionConnection[]>(
-                `SELECT calendar_id, calendar_name, date, name, description, done_method, done_method_option FROM connections WHERE user_id = ${users[0].user_id}`
+            pool.query<(NotionConnection & NotionConnectionSetting)[]>(
+                `SELECT 
+                    connections.calendar_id AS calendar_id, 
+                    calendar_name, 
+                    date, 
+                    name, 
+                    description, 
+                    done_method, 
+                    done_method_option,
+                    connection_settings.sync_rate AS sync_rate,
+                    connection_settings.statistic AS statistic
+                FROM ( 
+                    connections LEFT JOIN connection_settings ON
+                    connection_settings.calendar_id = connections.calendar_id
+                ) 
+                WHERE user_id = ${users[0].user_id}`
             )
         );
         await pool.end();
