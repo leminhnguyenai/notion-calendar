@@ -1,32 +1,29 @@
 import JobToTrack from "./JobToTrack";
 
 class Queue {
-    private queue: Array<JobToTrack<() => Promise<any>>>;
+    private queues: Array<JobToTrack<() => Promise<any>>[]>;
     private window: number;
-    private activate: boolean;
+    private token: number;
     constructor(window: number) {
-        this.queue = [];
+        this.queues = [];
+        for (let i = 0; i < window; i++) {
+            this.queues[i] = [];
+        }
         this.window = Math.floor(window);
-        this.activate = false;
+        this.token = -1;
     }
 
     addToQueue(job: JobToTrack<() => Promise<any>>): void {
-        this.queue.push(job);
-        this.processQueue();
+        this.token = (this.token + 1) % this.window;
+        this.queues[this.token].push(job);
+        this.processQueue(this.token);
     }
 
-    async processQueue(): Promise<void> {
-        //* Using multiple queues (number of queue = window)
-        if (this.activate) return;
-        this.activate = true;
-        while (this.queue.length > 0) {
-            const batchCount = this.queue.length > this.window ? this.window : this.queue.length;
-            for (let i = 0; i < batchCount; i++) {
-                await this.queue[i].process();
-            }
-            this.queue.splice(0, batchCount);
+    async processQueue(index: number): Promise<void> {
+        while (this.queues[index].length > 0) {
+            await this.queues[index][0].process();
+            this.queues[index].splice(0, 1);
         }
-        this.activate = false;
     }
 }
 
