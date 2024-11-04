@@ -39,3 +39,5 @@ export interface CustomRequest extends Request {
         authorization?: string;
     };
 }
+
+type FuncType = "db" | "fetch_notion" | "fetch_google";

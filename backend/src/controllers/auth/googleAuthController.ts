@@ -4,7 +4,7 @@ import path from "path";
 import { URL } from "url";
 import { BaseError } from "../../Errors";
 import { PORT } from "../../server";
-import saveUserInfo from "../../services/saveUserInfo";
+import saveUserInfo from "../../utils/saveUserInfo";
 dotenv.config({ path: path.join(__dirname, "../../../.env") });
 
 export const callback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

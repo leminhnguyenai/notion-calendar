@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import generateConsentScreen from "../services/generateConsentScreenUrl";
+import generateConsentScreen from "../utils/generateConsentScreenUrl";
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
