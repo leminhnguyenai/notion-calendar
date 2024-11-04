@@ -16,6 +16,7 @@ class Queue {
     }
 
     async processQueue(): Promise<void> {
+        //* Using multiple queues (number of queue = window)
         if (this.activate) return;
         this.activate = true;
         while (this.queue.length > 0) {

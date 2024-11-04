@@ -2,8 +2,9 @@ import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import mysql, { Connection, ConnectionOptions } from "mysql2/promise";
 import { BaseError } from "../Errors";
+import MessageQueue from "../services/messageQueue";
 
-const saveUserInfo = async (code: string): Promise<void> => {
+const saveUserInfo = async (code: string, msgQueue: MessageQueue): Promise<void> => {
     const oAuth2Client = new OAuth2Client(
         process.env.CLIENT_ID,
         process.env.CLIENT_SECRET,
@@ -31,10 +32,13 @@ const saveUserInfo = async (code: string): Promise<void> => {
     const email = userInfo.data.email;
     if (!email) throw new BaseError("", "Error retrieving user's email", 400);
     const conn: Connection = await mysql.createConnection(connectionOption);
-    await conn.query(
-        `INSERT INTO users(email, refresh_token) VALUES('${email}', '${refresh_token}') ON DUPLICATE KEY UPDATE refresh_token = '${refresh_token}'`
+    await msgQueue.enqueue(() =>
+        conn.query(
+            `INSERT INTO users(email, refresh_token) VALUES('${email}', '${refresh_token}') ON DUPLICATE KEY UPDATE refresh_token = '${refresh_token}'`
+        )
     );
     await conn.end();
+    new Date().toISOString();
 };
 
 export default saveUserInfo;

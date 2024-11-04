@@ -27,6 +27,7 @@ export interface NewNotionConnection extends RowDataPacket {
 }
 
 export interface NotionConnectionSetting extends RowDataPacket {
+    calendar_id: string;
     sync_rate: number;
     statistic: boolean;
 }

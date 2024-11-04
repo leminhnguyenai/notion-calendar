@@ -15,13 +15,18 @@ export const getConnectionsController = async (
         const refresh_token: string | undefined = req.refresh_token;
         if (!refresh_token) throw new BaseError("", "Error finding refresh token", 400);
         const pool: Pool = mysql.createPool(poolOption(2));
-        const [users] = await msgQueue.enqueue(() =>
-            pool.query<User[]>(`SELECT * FROM users WHERE refresh_token = '${refresh_token}'`)
+        const [users] = await msgQueue.enqueue(
+            () =>
+                pool.query<User[]>(`SELECT * FROM users WHERE refresh_token = '${refresh_token}'`),
+            "db"
         );
         if (users.length !== 1) throw new BaseError("", "Error finding user", 400);
-        const [connections] = await msgQueue.enqueue(() =>
-            pool.query<(NotionConnection & NotionConnectionSetting)[]>(
-                `SELECT 
+        const [connections] = await msgQueue.enqueue(
+            () =>
+                pool.query<
+                    (NotionConnection & Pick<NotionConnectionSetting, "sync_rate" | "statistic">)[]
+                >(
+                    `SELECT 
                     connections.calendar_id AS calendar_id, 
                     calendar_name, 
                     date, 
@@ -36,7 +41,8 @@ export const getConnectionsController = async (
                     connection_settings.calendar_id = connections.calendar_id
                 ) 
                 WHERE user_id = ${users[0].user_id}`
-            )
+                ),
+            "db"
         );
         await pool.end();
         res.status(200).json(connections);

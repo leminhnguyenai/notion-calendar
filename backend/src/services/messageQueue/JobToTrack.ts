@@ -1,7 +1,6 @@
 import EventEmitter from "events";
 import { FuncType } from "../../@types";
 import { BaseError } from "../../Errors";
-
 class JobToTrack<T extends () => Promise<any>> extends EventEmitter {
     // type of request (db, http request, ...)
     type: FuncType;

@@ -16,8 +16,11 @@ class MessageQueue {
         };
     }
 
-    async enqueue<T extends () => Promise<any>>(func: T): Promise<Awaited<ReturnType<T>>> {
-        const job = new JobToTrack(func, "db");
+    async enqueue<T extends () => Promise<any>>(
+        func: T,
+        type: FuncType
+    ): Promise<Awaited<ReturnType<T>>> {
+        const job = new JobToTrack(func, type);
         this.queues[job.type].addToQueue(job);
         return new Promise<Awaited<ReturnType<T>>>((resolve, reject) => {
             job.once("result", (result: Awaited<ReturnType<T>>) => {
