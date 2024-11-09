@@ -1,7 +1,9 @@
+import bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import mysql, { Connection, ConnectionOptions } from "mysql2/promise";
+import mysql, { Pool } from "mysql2/promise";
 import { BaseError } from "../Errors";
+import { poolOption } from "../config/db";
 import MessageQueue from "../services/messageQueue";
 
 const saveUserInfo = async (code: string, msgQueue: MessageQueue): Promise<void> => {
@@ -10,15 +12,6 @@ const saveUserInfo = async (code: string, msgQueue: MessageQueue): Promise<void>
         process.env.CLIENT_SECRET,
         process.env.REDIRECT_URL
     );
-    const connectionOption: ConnectionOptions = {
-        host: "localhost",
-        user: "root",
-        password: process.env.DATABASE_PASSWORD,
-        port: Number(process.env.DATABASE_PORT),
-        database: process.env.DATABASE_NAME,
-        waitForConnections: true,
-        queueLimit: 10,
-    };
 
     const r = await oAuth2Client.getToken(code);
 
@@ -31,13 +24,31 @@ const saveUserInfo = async (code: string, msgQueue: MessageQueue): Promise<void>
     const userInfo = await oauth2.userinfo.get();
     const email = userInfo.data.email;
     if (!email) throw new BaseError("", "Error retrieving user's email", 400);
-    const conn: Connection = await mysql.createConnection(connectionOption);
-    await msgQueue.enqueue(() =>
-        conn.query(
-            `INSERT INTO users(email, refresh_token) VALUES('${email}', '${refresh_token}') ON DUPLICATE KEY UPDATE refresh_token = '${refresh_token}'`
-        )
+    const pool: Pool = mysql.createPool(poolOption(2));
+    const user_id: string = await bcrypt.hash(`${refresh_token}_${email}_${new Date()}`, 10);
+    await msgQueue.enqueue(
+        pool.query(
+            `INSERT INTO users 
+                    VALUES(
+                        '${user_id}',
+                        '${email}', 
+                        '${refresh_token}',
+                        'user'
+                    ) 
+                 ON DUPLICATE KEY UPDATE refresh_token = '${refresh_token}'`
+        ),
+        "db"
     );
-    await conn.end();
+    await msgQueue.enqueue(
+        pool.query(`
+                     INSERT INTO settings(user_id)
+                    VALUES(
+                        '${user_id}'
+                    ) 
+    `),
+        "db"
+    );
+    await pool.end();
     new Date().toISOString();
 };
 

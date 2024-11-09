@@ -1,7 +1,7 @@
 import JobToTrack from "./JobToTrack";
 
-class Queue {
-    private queues: Array<JobToTrack<() => Promise<any>>[]>;
+class JobQueue {
+    private queues: Array<JobToTrack<Promise<any>>[]>;
     private window: number;
     private token: number;
     constructor(window: number) {
@@ -13,7 +13,7 @@ class Queue {
         this.token = -1;
     }
 
-    addToQueue(job: JobToTrack<() => Promise<any>>): void {
+    addToQueue(job: JobToTrack<Promise<any>>): void {
         this.token = (this.token + 1) % this.window;
         this.queues[this.token].push(job);
         this.processQueue(this.token);
@@ -27,4 +27,4 @@ class Queue {
     }
 }
 
-export default Queue;
+export default JobQueue;
