@@ -1,4 +1,4 @@
-import JobToTrack from "./JobToTrack";
+import JobToTrack from './JobToTrack';
 
 class JobQueue {
     private queues: Array<JobToTrack<Promise<any>>[]>;

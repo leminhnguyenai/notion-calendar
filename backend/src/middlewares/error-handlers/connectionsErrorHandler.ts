@@ -1,7 +1,12 @@
-import { NextFunction, Request, Response } from "express";
-import { BaseError } from "../../Errors";
+import { NextFunction, Request, Response } from 'express';
+import { BaseError } from '../../Errors';
 
-const connectionsErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+const connectionsErrorHandler = (
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
     console.log(err);
     if (err instanceof BaseError) {
         res.status(err.statusCode).send(err.message);
