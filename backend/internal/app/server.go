@@ -4,52 +4,41 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/routes"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
+	"github.com/lpernett/godotenv"
 )
 
-func addRoutes(
-	mux *http.ServeMux,
-	// List of routes
-) {
-	// mux.handle(PATH, HANDLER)
-}
-
-func newServer(
-// Routes here
-) http.Handler {
+func createServer() http.Handler {
 	mux := http.NewServeMux()
-	addRoutes(mux)
+
+	api.AddRouter(mux, "/auth", routes.Auth())
+	api.AddRouter(mux, "/users", routes.Users())
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Notion-calendar is on")
 	})
 
-	var handler http.Handler = mux
-	// Set up middlewares
-
-	return handler
+	return mux
 }
 
 func StartServer(errChan chan error) {
-	srv := newServer()
+	if err := godotenv.Load("/Users/leminhnguyenmba/Documents/Projects/notion-calendar/backend/.env"); err != nil {
+		errChan <- err
+	}
+	srv := createServer()
+
+	port := os.Getenv("PORT")
 	httpServer := &http.Server{
-		Addr:    config.Port,
+		Addr:    port,
 		Handler: srv,
 	}
 
-	localErrChan := make(chan error)
-
-	go func() {
-		log.Printf("The server is on http://localhost%s\n", config.Port)
-		err := httpServer.ListenAndServe()
-		if err != nil {
-			localErrChan <- err
-		}
-	}()
-
-	select {
-	case err := <-localErrChan:
+	log.Printf("The server is on http://localhost%s\n", port)
+	err := httpServer.ListenAndServe()
+	if err != nil {
 		errChan <- err
 	}
 }
