@@ -8,7 +8,7 @@ import (
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/routes"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
-	"github.com/lpernett/godotenv"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
 func createServer() http.Handler {
@@ -25,9 +25,10 @@ func createServer() http.Handler {
 }
 
 func StartServer(errChan chan error) {
-	if err := godotenv.Load("/Users/leminhnguyenmba/Documents/Projects/notion-calendar/backend/.env"); err != nil {
+	if err := filehandling.LoadEnv(); err != nil {
 		errChan <- err
 	}
+
 	srv := createServer()
 
 	port := os.Getenv("PORT")
@@ -37,8 +38,7 @@ func StartServer(errChan chan error) {
 	}
 
 	log.Printf("The server is on http://localhost%s\n", port)
-	err := httpServer.ListenAndServe()
-	if err != nil {
+	if err := httpServer.ListenAndServe(); err != nil {
 		errChan <- err
 	}
 }

@@ -4,23 +4,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/kardianos/osext"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
-	"github.com/lpernett/godotenv"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
 func Login(r *http.Request) (int, map[string]interface{}) {
-	_, err := osext.ExecutableFolder()
-	if err != nil {
-		return 404, map[string]interface{}{
-			"error": err,
-		}
-	}
-
-	if err := godotenv.Load("/Users/leminhnguyenmba/Documents/Projects/notion-calendar/backend/.env"); err != nil {
-		return 404, map[string]interface{}{
+	if err := filehandling.LoadEnv(); err != nil {
+		return http.StatusInternalServerError, map[string]interface{}{
 			"error": err,
 		}
 	}
@@ -33,7 +25,12 @@ func Login(r *http.Request) (int, map[string]interface{}) {
 		Endpoint:     google.Endpoint,
 	}
 
-	consentScreenUrl := conf.AuthCodeURL("state")
+	consentScreenUrl := conf.AuthCodeURL(
+		"state-token",
+		oauth2.AccessTypeOffline,
+		oauth2.ApprovalForce,
+	)
+
 	return http.StatusOK, map[string]interface{}{
 		"url": consentScreenUrl,
 	}

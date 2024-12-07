@@ -25,7 +25,10 @@ func (h Handler) serve(w http.ResponseWriter, r *http.Request) {
 	statusCode, data := h(r)
 
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(data)
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(data)
 }
 
 func (r *Router) addRoute(method, pattern string, handler Handler) {
