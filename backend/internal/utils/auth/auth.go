@@ -1,6 +1,7 @@
-package userscontroller
+package auth
 
 import (
+	"context"
 	"net/http"
 	"os"
 
@@ -10,11 +11,12 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func Login(r *http.Request) (int, map[string]interface{}) {
+func Authenticate(
+	ctx context.Context,
+	code string,
+) (*oauth2.Token, *http.Client, error) {
 	if err := filehandling.LoadEnv(); err != nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		}
+		return nil, nil, err
 	}
 
 	conf := &oauth2.Config{
@@ -25,13 +27,14 @@ func Login(r *http.Request) (int, map[string]interface{}) {
 		Endpoint:     google.Endpoint,
 	}
 
-	consentScreenUrl := conf.AuthCodeURL(
-		"state-token",
-		oauth2.AccessTypeOffline,
-		oauth2.ApprovalForce,
-	)
-
-	return http.StatusOK, map[string]interface{}{
-		"url": consentScreenUrl,
+	token, err := conf.Exchange(ctx, code)
+	if err != nil {
+		return nil, nil, err
 	}
+
+	tokenSource := conf.TokenSource(ctx, token)
+
+	client := oauth2.NewClient(ctx, tokenSource)
+
+	return token, client, nil
 }

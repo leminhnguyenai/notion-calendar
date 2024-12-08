@@ -3,15 +3,11 @@ package useraction
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/auth"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	oauth2api "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 )
@@ -19,28 +15,10 @@ import (
 func SaveUserInfo(code string) error {
 	ctx := context.Background()
 
-	if err := filehandling.LoadEnv(); err != nil {
-		return err
-	}
-
-	conf := &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
-		Scopes:       config.Scopes,
-		Endpoint:     google.Endpoint,
-	}
-
-	token, err := conf.Exchange(ctx, code)
+	token, client, err := auth.Authenticate(ctx, code)
 	if err != nil {
 		return err
 	}
-
-	refreshToken := token.RefreshToken
-
-	tokenSource := conf.TokenSource(ctx, token)
-
-	client := oauth2.NewClient(ctx, tokenSource)
 
 	oauth2Service, err := oauth2api.NewService(
 		ctx,
@@ -59,6 +37,8 @@ func SaveUserInfo(code string) error {
 	if email == "" {
 		return err
 	}
+
+	refreshToken := token.RefreshToken
 
 	userId, err := encryption.GenerateHash(
 		fmt.Sprintf("%s_%s", time.Now().String(), refreshToken),

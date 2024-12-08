@@ -17,7 +17,7 @@ import (
 func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
 	if err := filehandling.LoadEnv(); err != nil {
 		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err,
+			"error": err.Error(),
 		}
 	}
 
@@ -26,7 +26,7 @@ func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
 	)
 	if err != nil {
 		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err,
+			"error": err.Error(),
 		}
 	}
 
@@ -36,7 +36,7 @@ func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
 	err = useraction.SaveUserInfo(code)
 	if err != nil {
 		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err,
+			"error": err.Error(),
 		}
 	}
 

@@ -21,16 +21,17 @@ func NewRouter() *Router {
 
 type Handler func(r *http.Request) (statusCode int, data map[string]interface{})
 
-func (h Handler) serve(w http.ResponseWriter, r *http.Request) {
-	statusCode, data := h(r)
+func (h Handler) serve() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		statusCode, data := h(r)
 
-	w.WriteHeader(statusCode)
-	w.Header().Set("Content-Type", "application/json")
-	encoder := json.NewEncoder(w)
-	encoder.SetEscapeHTML(false)
-	encoder.Encode(data)
+		w.WriteHeader(statusCode)
+		w.Header().Set("Content-Type", "application/json")
+		encoder := json.NewEncoder(w)
+		encoder.SetEscapeHTML(false)
+		encoder.Encode(data)
+	})
 }
-
 func (r *Router) addRoute(method, pattern string, handler Handler) {
 	r.routes = append(r.routes, Route{
 		Method:  method,
@@ -65,6 +66,6 @@ func (r *Router) AddSubRouter(subPattern string, sr *Router) {
 func AddRouter(mux *http.ServeMux, basePattern string, r *Router) {
 	for _, route := range r.routes {
 		pattern := route.Method + " " + basePattern + route.Pattern
-		mux.HandleFunc(pattern, route.Handler.serve)
+		mux.Handle(pattern, route.Handler.serve())
 	}
 }
