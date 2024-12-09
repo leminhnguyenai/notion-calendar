@@ -16,6 +16,7 @@ func createServer() http.Handler {
 
 	api.AddRouter(mux, "/auth", routes.Auth())
 	api.AddRouter(mux, "/users", routes.Users())
+	api.AddRouter(mux, "/connections", routes.Connections())
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Notion-calendar is on")

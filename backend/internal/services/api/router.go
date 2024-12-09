@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -11,8 +12,14 @@ type Route struct {
 	Handler Handler
 }
 
+type Middleware struct {
+	Handler  func(next http.Handler) http.Handler
+	Position int
+}
+
 type Router struct {
-	routes []Route
+	routes      []Route
+	middlewares []Middleware
 }
 
 func NewRouter() *Router {
@@ -20,6 +27,14 @@ func NewRouter() *Router {
 }
 
 type Handler func(r *http.Request) (statusCode int, data map[string]interface{})
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func (h Handler) serve() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +47,7 @@ func (h Handler) serve() http.Handler {
 		encoder.Encode(data)
 	})
 }
-func (r *Router) addRoute(method, pattern string, handler Handler) {
+func (r *Router) addHandler(method, pattern string, handler Handler) {
 	r.routes = append(r.routes, Route{
 		Method:  method,
 		Pattern: pattern,
@@ -41,19 +56,38 @@ func (r *Router) addRoute(method, pattern string, handler Handler) {
 }
 
 func (r *Router) GET(pattern string, handler Handler) {
-	r.addRoute("GET", pattern, handler)
+	r.addHandler("GET", pattern, handler)
 }
 
 func (r *Router) POST(pattern string, handler Handler) {
-	r.addRoute("POST", pattern, handler)
+	r.addHandler("POST", pattern, handler)
 }
 
 func (r *Router) PATCH(pattern string, handler Handler) {
-	r.addRoute("PATCH", pattern, handler)
+	r.addHandler("PATCH", pattern, handler)
 }
 
 func (r *Router) DELETE(pattern string, handler Handler) {
-	r.addRoute("DELETE", pattern, handler)
+	r.addHandler("DELETE", pattern, handler)
+}
+
+func (r *Router) Use(handler func(next http.Handler) http.Handler) {
+	middleware := Middleware{
+		Handler:  handler,
+		Position: len(r.routes),
+	}
+	r.middlewares = append(r.middlewares, middleware)
+}
+
+func (r *Router) chainMiddlewares(position int) http.Handler {
+	handler := r.routes[position].Handler.serve()
+	for _, middleware := range r.middlewares {
+		if position >= middleware.Position {
+			handler = middleware.Handler(handler)
+		}
+	}
+
+	return handler
 }
 
 func (r *Router) AddSubRouter(subPattern string, sr *Router) {
@@ -64,8 +98,10 @@ func (r *Router) AddSubRouter(subPattern string, sr *Router) {
 }
 
 func AddRouter(mux *http.ServeMux, basePattern string, r *Router) {
-	for _, route := range r.routes {
+	for i, route := range r.routes {
 		pattern := route.Method + " " + basePattern + route.Pattern
-		mux.Handle(pattern, route.Handler.serve())
+		handler := r.chainMiddlewares(i)
+
+		mux.Handle(pattern, handler)
 	}
 }
