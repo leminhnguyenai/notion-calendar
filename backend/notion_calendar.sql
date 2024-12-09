@@ -10,7 +10,7 @@ CREATE TABLE connections (
     user_id VARCHAR(72) NOT NULL,
     calendar_name VARCHAR(90) NOT NULL,
     db JSON NOT NULL,
-    name JSON NOT NULL,
+    event_name JSON NOT NULL,
     date JSON NOT NULL,
     description JSON,
     done_method JSON,
@@ -35,4 +35,5 @@ CREATE TABLE settings (
     theme ENUM("light", "dark", "system") NOT NULL DEFAULT "system",
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
 
