@@ -19,7 +19,7 @@ func Validate(next http.Handler) http.Handler {
 
 		refreshToken := authHeader[len("Bearer "):]
 
-		sql, err := NewDb()
+		sqlDb, err := NewDb()
 		if err != nil {
 			http.Error(
 				w,
@@ -29,7 +29,7 @@ func Validate(next http.Handler) http.Handler {
 			return
 		}
 
-		rows, err := sql.GetUser(refreshToken)
+		rows, err := sqlDb.GetUser(refreshToken)
 		if err != nil {
 			http.Error(
 				w,

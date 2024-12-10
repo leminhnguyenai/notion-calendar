@@ -7,7 +7,6 @@ import (
 )
 
 // TODO: Add GET connections route (Without Google API interaction)
-// TODO: Add POST connections route (Without Google API interaction)
 // TODO: Add PATCH connections route (Without Google API interaction)
 // TODO: Add DELETE connections route (Without Google API interaction)
 

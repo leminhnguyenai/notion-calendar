@@ -47,14 +47,14 @@ func SaveUserInfo(code string) error {
 		return err
 	}
 
-	sql, err := NewDb()
+	sqlDb, err := NewDb()
 	if err != nil {
 		return err
 	}
 
-	defer sql.Db.Close()
+	defer sqlDb.Db.Close()
 
-	err = sql.CreateNewUser(userId, email, refreshToken)
+	err = sqlDb.CreateNewUser(userId, email, refreshToken)
 	if err != nil {
 		return err
 	}

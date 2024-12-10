@@ -6,7 +6,8 @@ CREATE TABLE users (
 );
 
 CREATE TABLE connections (
-    calendar_id VARCHAR(52) PRIMARY KEY,
+    connection_id VARCHAR(72) PRIMARY KEY
+    calendar_id VARCHAR(52),
     user_id VARCHAR(72) NOT NULL,
     calendar_name VARCHAR(90) NOT NULL,
     db JSON NOT NULL,
@@ -24,10 +25,10 @@ CREATE TABLE connections (
 CREATE TABLE relations (
     notion_id VARCHAR(36) PRIMARY KEY,
     google_id VARCHAR(26) UNIQUE NOT NULL,
-    calendar_id VARCHAR(52) NOT NULL,
+    connection_id VARCHAR(52) NOT NULL,
     created_time TIMESTAMP NOT NULL,
     last_updated_time TIMESTAMP NOT NULL,
-    FOREIGN KEY (calendar_id) REFERENCES connections(calendar_id) ON DELETE CASCADE
+    FOREIGN KEY (connection_id) REFERENCES connections(connection_id) ON DELETE CASCADE
 );
 
 CREATE TABLE settings (
