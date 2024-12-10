@@ -11,7 +11,6 @@ import (
 // TODO: Add PATCH connections route (Without Google API interaction)
 // TODO: Add DELETE connections route (Without Google API interaction)
 
-// FIX: Figure out why the why can't use "/" for POST
 func Connections() *api.Router {
 	router := api.NewRouter()
 

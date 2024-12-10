@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"path"
 )
 
 type Route struct {
@@ -90,7 +91,7 @@ func (r *Router) AddSubRouter(subPattern string, sr *Router) {
 
 func AddRouter(mux *http.ServeMux, basePattern string, r *Router) {
 	for i, route := range r.routes {
-		pattern := route.Method + " " + basePattern + route.Pattern
+		pattern := route.Method + " " + path.Join(basePattern, route.Pattern)
 		handler := r.chainMiddlewares(i)
 
 		mux.Handle(pattern, handler)
