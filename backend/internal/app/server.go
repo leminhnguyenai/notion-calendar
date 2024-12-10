@@ -11,6 +11,14 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func createServer() http.Handler {
 	mux := http.NewServeMux()
 
@@ -22,7 +30,7 @@ func createServer() http.Handler {
 		fmt.Fprintf(w, "Notion-calendar is on")
 	})
 
-	return mux
+	return loggingMiddleware(mux)
 }
 
 func StartServer(errChan chan error) {

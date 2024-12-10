@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -27,14 +26,6 @@ func NewRouter() *Router {
 }
 
 type Handler func(r *http.Request) (statusCode int, data map[string]interface{})
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %s %s", r.Method, r.URL.Path)
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func (h Handler) serve() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

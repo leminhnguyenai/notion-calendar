@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
@@ -20,7 +19,7 @@ func Validate(next http.Handler) http.Handler {
 
 		refreshToken := authHeader[len("Bearer "):]
 
-		db, err := InitDb()
+		sql, err := NewDb()
 		if err != nil {
 			http.Error(
 				w,
@@ -29,29 +28,14 @@ func Validate(next http.Handler) http.Handler {
 			)
 			return
 		}
-		defer db.Close()
 
-		q, err := db.Prepare("SELECT * FROM users WHERE refresh_token = ?")
+		rows, err := sql.GetUser(refreshToken)
 		if err != nil {
 			http.Error(
 				w,
-				"Server error",
+				"Database error",
 				http.StatusInternalServerError,
 			)
-			log.Println(err)
-			return
-		}
-		defer q.Close()
-
-		rows, err := q.Query(refreshToken)
-		if err != nil {
-			http.Error(
-				w,
-				"Server error",
-				http.StatusInternalServerError,
-			)
-			log.Println(err)
-			return
 		}
 
 		rowsCount := 0

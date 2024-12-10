@@ -10,10 +10,6 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/useraction"
 )
 
-// TODO: Add callback func for authentication
-// TODO: Add middlewares to authenticate
-
-// FIX: Get error printed out correctly
 func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
 	if err := filehandling.LoadEnv(); err != nil {
 		return http.StatusInternalServerError, map[string]interface{}{

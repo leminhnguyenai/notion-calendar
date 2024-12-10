@@ -47,38 +47,15 @@ func SaveUserInfo(code string) error {
 		return err
 	}
 
-	db, err := InitDb()
+	sql, err := NewDb()
 	if err != nil {
 		return err
 	}
 
-	defer db.Close()
+	defer sql.Db.Close()
 
-	userInputQ, err := db.Prepare(
-		`INSERT INTO users(user_id, email, refresh_token, role) 
-             VALUES(?, ?, ?, 'user') 
-             ON DUPLICATE KEY UPDATE refresh_token = ?`,
-	)
+	err = sql.CreateNewUser(userId, email, refreshToken)
 	if err != nil {
-		return err
-	}
-
-	defer userInputQ.Close()
-
-	settinggInputQ, err := db.Prepare(
-		"INSERT IGNORE INTO settings(user_id) VALUES(?)",
-	)
-	if err != nil {
-		return err
-	}
-
-	defer settinggInputQ.Close()
-
-	if _, err = userInputQ.Exec(userId, email, refreshToken, refreshToken); err != nil {
-		return err
-	}
-
-	if _, err = settinggInputQ.Exec(userId); err != nil {
 		return err
 	}
 

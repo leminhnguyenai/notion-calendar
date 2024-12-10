@@ -1,32 +1,24 @@
 package routes
 
 import (
-	"net/http"
-
+	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/connectionsControllers"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func main(r *http.Request) (int, map[string]interface{}) {
-	refreshToken, ok := r.Context().Value("refreshToken").(string)
-	if !ok || refreshToken == "" {
-		return http.StatusUnauthorized, map[string]interface{}{
-			"Status": "Unauthorized",
-		}
-	}
+// TODO: Add GET connections route (Without Google API interaction)
+// TODO: Add POST connections route (Without Google API interaction)
+// TODO: Add PATCH connections route (Without Google API interaction)
+// TODO: Add DELETE connections route (Without Google API interaction)
 
-	return http.StatusOK, map[string]interface{}{
-		"message":      "Route connections is on",
-		"refreshToken": refreshToken,
-	}
-}
-
+// FIX: Figure out why the why can't use "/" for POST
 func Connections() *api.Router {
 	router := api.NewRouter()
 
 	router.Use(middlewares.Validate)
 
-	router.GET("/", main)
+	// router.GET("/", GetConns)
+	router.POST("", PostConns)
 
 	return router
 }
