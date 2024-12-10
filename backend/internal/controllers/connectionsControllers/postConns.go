@@ -46,7 +46,6 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 			"error": err.Error(),
 		}
 	}
-	// FIX: Figure out why the shcema doesn't match with the request
 
 	log.Println("The request is valid")
 

@@ -81,16 +81,16 @@
         "statistic": {
           "type": "boolean"
         }
-      }
-    },
-    "required": [
-      "calendarName",
-      "db",
-      "eventName",
-      "date",
-      "syncRate",
-      "statistic"
-    ]
+      },
+      "required": [
+        "calendarName",
+        "db",
+        "eventName",
+        "date",
+        "syncRate",
+        "statistic"
+      ]
+    }
   },
   "required": [
     "connection"
