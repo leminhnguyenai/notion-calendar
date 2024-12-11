@@ -13,6 +13,7 @@ import (
 func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	if err := filehandling.LoadEnv(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	parsedUrl, err := url.Parse(
@@ -20,6 +21,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	queryParams := parsedUrl.Query()
@@ -28,6 +30,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	err = useraction.SaveUserInfo(code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

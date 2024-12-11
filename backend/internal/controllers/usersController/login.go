@@ -14,6 +14,7 @@ import (
 func Login(w http.ResponseWriter, r *http.Request) {
 	if err := filehandling.LoadEnv(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	conf := &oauth2.Config{

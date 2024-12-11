@@ -1,16 +1,16 @@
 package middlewares
 
 import (
-	"encoding/json"
+	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/schema"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 func InitSchemaValidation(
 	schemaPath string,
-	requestBody interface{},
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,23 +24,26 @@ func InitSchemaValidation(
 				return
 			}
 
-			err = schema.ValidateJSON(schemaPath, body)
-			if err != nil {
-				http.Error(
-					w,
-					"err: "+err.Error(),
-					http.StatusUnauthorized,
-				)
-				return
-			}
+			r.Body = io.NopCloser(bytes.NewReader(body))
 
-			err = json.Unmarshal(body, &requestBody)
+			schema := gojsonschema.NewReferenceLoader("file://" + schemaPath)
+			document := gojsonschema.NewBytesLoader(body)
+
+			result, err := gojsonschema.Validate(schema, document)
 			if err != nil {
 				http.Error(
 					w,
 					"err: "+err.Error(),
 					http.StatusInternalServerError,
 				)
+				return
+			}
+
+			if !result.Valid() {
+				for _, desc := range result.Errors() {
+					fmt.Printf("- %s\n", desc)
+				}
+				http.Error(w, "Invalid JSON", http.StatusUnauthorized)
 				return
 			}
 

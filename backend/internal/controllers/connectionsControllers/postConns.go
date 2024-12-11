@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"path"
 	"time"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/schema"
 )
 
 func PostConns(w http.ResponseWriter, r *http.Request) {
@@ -22,24 +19,13 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 			"Can't find user refresh token",
 			http.StatusInternalServerError,
 		)
-	}
-
-	dirname, err := filehandling.GetDirname()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	err = schema.ValidateJSON(
-		path.Join(dirname, ".././internal/schemas/userInputNotionConn.json"),
-		body,
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var requestBody struct {
@@ -49,6 +35,7 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// TODO: Change this later when adding Google Calendar API operations
@@ -59,11 +46,13 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	sqlDb, err := NewDb()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var userId string
@@ -84,6 +73,7 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
