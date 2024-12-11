@@ -10,20 +10,16 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/useraction"
 )
 
-func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
+func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	if err := filehandling.LoadEnv(); err != nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	parsedUrl, err := url.Parse(
 		fmt.Sprintf("http://localhost%s%s", os.Getenv("PORT"), r.URL.String()),
 	)
 	if err != nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	queryParams := parsedUrl.Query()
@@ -31,10 +27,8 @@ func GoogleAuthCallback(r *http.Request) (int, map[string]interface{}) {
 
 	err = useraction.SaveUserInfo(code)
 	if err != nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	return http.StatusOK, map[string]interface{}{}
+	w.WriteHeader(http.StatusOK)
 }

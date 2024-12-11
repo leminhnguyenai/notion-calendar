@@ -2,49 +2,57 @@ package middlewares
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	customerrors "github.com/leminhnguyenai/notion-calendar/backend/internal/utils/customErrors"
 )
 
-func ValidateAuth(r *http.Request) (int, map[string]interface{}) {
-	authHeader := r.Header.Get("Authorization")
+func ValidateAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
 
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return http.StatusUnauthorized, map[string]interface{}{
-			"error": "Unauthorized",
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
 		}
-	}
 
-	refreshToken := authHeader[len("Bearer "):]
+		refreshToken := authHeader[len("Bearer "):]
 
-	sqlDb, err := NewDb()
-	if err != nil {
-		return customerrors.ServerError(err)
-	}
+		sqlDb, err := NewDb()
+		if err != nil {
+			http.Error(
+				w,
+				"Error retreiving authentication from Database",
+				http.StatusInternalServerError,
+			)
+			return
+		}
 
-	rows, err := sqlDb.GetUser(refreshToken)
-	if err != nil {
-		return customerrors.ServerError(err)
-	}
+		rows, err := sqlDb.GetUser(refreshToken)
+		if err != nil {
+			http.Error(
+				w,
+				"Database error",
+				http.StatusInternalServerError,
+			)
+		}
 
-	rowsCount := 0
-	for rows.Next() {
-		rowsCount++
-	}
+		rowsCount := 0
+		for rows.Next() {
+			rowsCount++
+		}
 
-	if rowsCount != 1 {
-		return customerrors.ServerError(
-			fmt.Errorf("Can't find user credentials"),
-		)
-	}
+		if rowsCount != 1 {
+			http.Error(
+				w,
+				"Error validating token",
+				http.StatusUnauthorized,
+			)
+			return
+		}
 
-	ctx := context.WithValue(r.Context(), "refreshToken", refreshToken)
-
-	return http.StatusOK, map[string]interface{}{
-		"request": r.WithContext(ctx),
-	}
+		ctx := context.WithValue(r.Context(), "refreshToken", refreshToken)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

@@ -1,6 +1,7 @@
 package userscontroller
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
@@ -10,11 +11,9 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func Login(r *http.Request) (int, map[string]interface{}) {
+func Login(w http.ResponseWriter, r *http.Request) {
 	if err := filehandling.LoadEnv(); err != nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	conf := &oauth2.Config{
@@ -31,7 +30,11 @@ func Login(r *http.Request) (int, map[string]interface{}) {
 		oauth2.ApprovalForce,
 	)
 
-	return http.StatusOK, map[string]interface{}{
-		"url": consentScreenUrl,
-	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(map[string]interface{}{
+		"urk": consentScreenUrl,
+	})
 }

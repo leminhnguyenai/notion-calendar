@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 	"path"
 )
@@ -9,11 +8,11 @@ import (
 type Route struct {
 	Method  string
 	Pattern string
-	Handler Handler
+	Handler http.Handler
 }
 
 type Middleware struct {
-	Handler  Handler
+	Handler  func(next http.Handler) http.Handler
 	Position int
 }
 
@@ -26,43 +25,7 @@ func NewRouter() *Router {
 	return &Router{}
 }
 
-type Handler func(r *http.Request) (statusCode int, data map[string]interface{})
-
-// TODO: Turn Handler into a middlware when needed
-// FIX: Turn the Handler into normal http.Handler
-func (h Handler) serve(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		statusCode, data := h(r)
-
-		if next != nil {
-			if statusCode != http.StatusOK {
-				goto RESPONSE
-			}
-
-			newRequest, ok := data["request"].(*http.Request)
-			if !ok || newRequest == nil {
-				statusCode = http.StatusInternalServerError
-				data = map[string]interface{}{
-					"error": "Server error",
-				}
-				goto RESPONSE
-			}
-
-			next.ServeHTTP(w, newRequest)
-			return
-		}
-
-	RESPONSE:
-		w.WriteHeader(statusCode)
-		w.Header().Set("Content-Type", "application/json")
-		encoder := json.NewEncoder(w)
-		encoder.SetEscapeHTML(false)
-		encoder.Encode(data)
-
-	})
-}
-
-func (r *Router) addHandler(method, pattern string, handler Handler) {
+func (r *Router) addHandler(method, pattern string, handler http.Handler) {
 	r.routes = append(r.routes, Route{
 		Method:  method,
 		Pattern: pattern,
@@ -70,23 +33,23 @@ func (r *Router) addHandler(method, pattern string, handler Handler) {
 	})
 }
 
-func (r *Router) GET(pattern string, handler Handler) {
+func (r *Router) GET(pattern string, handler http.Handler) {
 	r.addHandler("GET", pattern, handler)
 }
 
-func (r *Router) POST(pattern string, handler Handler) {
+func (r *Router) POST(pattern string, handler http.Handler) {
 	r.addHandler("POST", pattern, handler)
 }
 
-func (r *Router) PATCH(pattern string, handler Handler) {
+func (r *Router) PATCH(pattern string, handler http.Handler) {
 	r.addHandler("PATCH", pattern, handler)
 }
 
-func (r *Router) DELETE(pattern string, handler Handler) {
+func (r *Router) DELETE(pattern string, handler http.Handler) {
 	r.addHandler("DELETE", pattern, handler)
 }
 
-func (r *Router) Use(handler Handler) {
+func (r *Router) Use(handler func(next http.Handler) http.Handler) {
 	middleware := Middleware{
 		Handler:  handler,
 		Position: len(r.routes),
@@ -95,10 +58,10 @@ func (r *Router) Use(handler Handler) {
 }
 
 func (r *Router) chainMiddlewares(position int) http.Handler {
-	handler := r.routes[position].Handler.serve(nil)
+	handler := r.routes[position].Handler
 	for _, middleware := range r.middlewares {
 		if position >= middleware.Position {
-			handler = middleware.Handler.serve(handler)
+			handler = middleware.Handler(handler)
 		}
 	}
 

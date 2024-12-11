@@ -2,7 +2,6 @@ package connectionscontrollers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -10,28 +9,29 @@ import (
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
-	customerrors "github.com/leminhnguyenai/notion-calendar/backend/internal/utils/customErrors"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/schema"
 )
 
-func PostConns(r *http.Request) (int, map[string]interface{}) {
+func PostConns(w http.ResponseWriter, r *http.Request) {
 	refreshToken, ok := r.Context().Value("refreshToken").(string)
 	if !ok || refreshToken == "" {
-		return customerrors.ServerError(
-			fmt.Errorf("Failed retrieving user's refresh token"),
+		http.Error(
+			w,
+			"Can't find user refresh token",
+			http.StatusInternalServerError,
 		)
 	}
 
 	dirname, err := filehandling.GetDirname()
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = schema.ValidateJSON(
@@ -39,7 +39,7 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 		body,
 	)
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	var requestBody struct {
@@ -48,7 +48,7 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	// TODO: Change this later when adding Google Calendar API operations
@@ -58,12 +58,12 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 		calendarId + time.Now().String(),
 	)
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	sqlDb, err := NewDb()
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	var userId string
@@ -72,7 +72,7 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 		"SELECT user_id FROM users WHERE refresh_token = ?", refreshToken).
 		Scan(&userId)
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = sqlDb.CreateNewConn(models.NotionConnection{
@@ -83,8 +83,9 @@ func PostConns(r *http.Request) (int, map[string]interface{}) {
 		NextExecTime:        time.Now(),
 	})
 	if err != nil {
-		return customerrors.ServerError(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	return http.StatusOK, map[string]interface{}{}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Connection added successfully"))
 }
