@@ -16,7 +16,6 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/schema"
 )
 
-// FIX: Improve the time to process
 func PostConns(r *http.Request) (int, map[string]interface{}) {
 	refreshToken, ok := r.Context().Value("refreshToken").(string)
 	if !ok || refreshToken == "" {

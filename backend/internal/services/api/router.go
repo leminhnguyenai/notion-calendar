@@ -13,7 +13,7 @@ type Route struct {
 }
 
 type Middleware struct {
-	Handler  func(next http.Handler) http.Handler
+	Handler  Handler
 	Position int
 }
 
@@ -28,17 +28,40 @@ func NewRouter() *Router {
 
 type Handler func(r *http.Request) (statusCode int, data map[string]interface{})
 
-func (h Handler) serve() http.Handler {
+// TODO: Turn Handler into a middlware when needed
+// FIX: Turn the Handler into normal http.Handler
+func (h Handler) serve(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		statusCode, data := h(r)
 
+		if next != nil {
+			if statusCode != http.StatusOK {
+				goto RESPONSE
+			}
+
+			newRequest, ok := data["request"].(*http.Request)
+			if !ok || newRequest == nil {
+				statusCode = http.StatusInternalServerError
+				data = map[string]interface{}{
+					"error": "Server error",
+				}
+				goto RESPONSE
+			}
+
+			next.ServeHTTP(w, newRequest)
+			return
+		}
+
+	RESPONSE:
 		w.WriteHeader(statusCode)
 		w.Header().Set("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
 		encoder.SetEscapeHTML(false)
 		encoder.Encode(data)
+
 	})
 }
+
 func (r *Router) addHandler(method, pattern string, handler Handler) {
 	r.routes = append(r.routes, Route{
 		Method:  method,
@@ -63,7 +86,7 @@ func (r *Router) DELETE(pattern string, handler Handler) {
 	r.addHandler("DELETE", pattern, handler)
 }
 
-func (r *Router) Use(handler func(next http.Handler) http.Handler) {
+func (r *Router) Use(handler Handler) {
 	middleware := Middleware{
 		Handler:  handler,
 		Position: len(r.routes),
@@ -72,10 +95,10 @@ func (r *Router) Use(handler func(next http.Handler) http.Handler) {
 }
 
 func (r *Router) chainMiddlewares(position int) http.Handler {
-	handler := r.routes[position].Handler.serve()
+	handler := r.routes[position].Handler.serve(nil)
 	for _, middleware := range r.middlewares {
 		if position >= middleware.Position {
-			handler = middleware.Handler(handler)
+			handler = middleware.Handler.serve(handler)
 		}
 	}
 

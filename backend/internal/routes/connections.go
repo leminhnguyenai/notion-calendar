@@ -13,7 +13,7 @@ import (
 func Connections() *api.Router {
 	router := api.NewRouter()
 
-	router.Use(middlewares.Validate)
+	router.Use(middlewares.ValidateAuth)
 
 	// router.GET("/", GetConns)
 	router.POST("", PostConns)
