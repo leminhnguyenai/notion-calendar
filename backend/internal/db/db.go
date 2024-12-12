@@ -90,6 +90,81 @@ func (sql *Sql) CreateNewUser(
 	return nil
 }
 
+func (sqlDb *Sql) GetConns(userId string) ([]models.NotionConn, error) {
+	q, err := sqlDb.Db.Prepare(`
+	SELECT 
+	    connection_id,
+	    calendar_id,
+	    calendar_name,
+	    user_id,
+	    db,
+	    event_name,
+	    date,
+	    description,
+	    done_method,
+        done_method_option,
+        sync_rate,
+        statistic,
+        next_exec_time
+    FROM connections WHERE user_id = ?
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer q.Close()
+
+	rows, err := q.Query(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	notionConns := []models.NotionConn{}
+
+	for rows.Next() {
+		var notionConn models.NotionConn
+		var db []byte
+		var eventName []byte
+		var date []byte
+		var description []byte
+		var doneMethod []byte
+		var doneMethodOption []byte
+
+		err := rows.Scan(
+			&notionConn.ConnectionId,
+			&notionConn.CalendarId,
+			&notionConn.CalendarName,
+			&notionConn.UserId,
+			&db,
+			&eventName,
+			&date,
+			&description,
+			&doneMethod,
+			&doneMethodOption,
+			&notionConn.SyncRate,
+			&notionConn.Statistic,
+			&notionConn.NextExecTime,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(db, &notionConn.Db)
+		err = json.Unmarshal(db, &notionConn.EventName)
+		err = json.Unmarshal(db, &notionConn.Date)
+		err = json.Unmarshal(db, &notionConn.Description)
+		err = json.Unmarshal(db, &notionConn.DoneMethod)
+		err = json.Unmarshal(db, &notionConn.DoneMethodOption)
+		if err != nil {
+			return nil, err
+		}
+
+		notionConns = append(notionConns, notionConn)
+	}
+
+	return notionConns, nil
+}
+
 // CRUD operations for connections
 func checkOptionalField(o models.Option) (sql.NullString, error) {
 	var str sql.NullString
@@ -181,75 +256,70 @@ func (sqlDb *Sql) CreateNewConn(conn models.NotionConn) error {
 	return nil
 }
 
-func (sqlDb *Sql) GetConns(userId string) ([]models.NotionConn, error) {
+func (sqlDb *Sql) UpdateConn(
+	connectionId string,
+	conn models.UserInputNotionConn,
+) error {
 	q, err := sqlDb.Db.Prepare(`
-	SELECT 
-	    calendar_id,
-	    calendar_name,
-	    user_id,
-	    db,
-	    event_name,
-	    date,
-	    description,
-	    done_method,
-        done_method_option,
-        sync_rate,
-        statistic,
-        next_exec_time
-    FROM connections WHERE user_id = ?
-	`)
+    UPDATE connections SET 
+            calendar_name = ?,
+            sync_rate = ?,
+            statistic = ?,
+            db = ?,
+            event_name = ?,
+            date = ?,
+            description = ?,
+            done_method = ?,
+            done_method_option = ?
+        WHERE connection_id = ?
+    `)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer q.Close()
 
-	rows, err := q.Query(userId)
+	db, err := json.Marshal(conn.Db)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	eventName, err := json.Marshal(conn.EventName)
+	if err != nil {
+		return err
+	}
+	date, err := json.Marshal(conn.Date)
+	if err != nil {
+		return err
 	}
 
-	notionConns := []models.NotionConn{}
-
-	for rows.Next() {
-		var notionConn models.NotionConn
-		var db []byte
-		var eventName []byte
-		var date []byte
-		var description []byte
-		var doneMethod []byte
-		var doneMethodOption []byte
-
-		err := rows.Scan(
-			&notionConn.CalendarId,
-			&notionConn.CalendarName,
-			&notionConn.UserId,
-			&db,
-			&eventName,
-			&date,
-			&description,
-			&doneMethod,
-			&doneMethodOption,
-			&notionConn.SyncRate,
-			&notionConn.Statistic,
-			&notionConn.NextExecTime,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal(db, &notionConn.Db)
-		err = json.Unmarshal(db, &notionConn.EventName)
-		err = json.Unmarshal(db, &notionConn.Date)
-		err = json.Unmarshal(db, &notionConn.Description)
-		err = json.Unmarshal(db, &notionConn.DoneMethod)
-		err = json.Unmarshal(db, &notionConn.DoneMethodOption)
-		if err != nil {
-			return nil, err
-		}
-
-		notionConns = append(notionConns, notionConn)
+	description, err := checkOptionalField(conn.Description)
+	if err != nil {
+		return err
+	}
+	doneMethod, err := checkOptionalField(conn.DoneMethod)
+	if err != nil {
+		return err
+	}
+	doneMethodOption, err := checkOptionalField(conn.DoneMethodOption)
+	if err != nil {
+		return err
 	}
 
-	return notionConns, nil
+	_, err = q.Exec(
+		conn.CalendarName,
+		conn.SyncRate,
+		conn.Statistic,
+		db,
+		eventName,
+		date,
+		description,
+		doneMethod,
+		doneMethodOption,
+		connectionId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

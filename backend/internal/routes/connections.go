@@ -10,7 +10,6 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
-// TODO: Add PATCH connections route (Without Google API interaction)
 // TODO: Add DELETE connections route (Without Google API interaction)
 
 func Connections() *api.Router {
@@ -29,6 +28,7 @@ func Connections() *api.Router {
 
 	router.GET("/", http.HandlerFunc(GetConns))
 	router.POST("/", validateUserInputConn(http.HandlerFunc(PostConns)))
+	router.PATCH("/", validateUserInputConn(http.HandlerFunc(PatchConn)))
 
 	return router
 }
