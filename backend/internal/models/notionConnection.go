@@ -19,7 +19,7 @@ type UserInputNotionConn struct {
 	Statistic        bool   `json:"statistic"`
 }
 
-type NotionConnection struct {
+type NotionConn struct {
 	UserInputNotionConn
 	ConnectionId string    `json:"connectionId"`
 	CalendarId   string    `json:"calendarId"`

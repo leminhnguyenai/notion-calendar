@@ -23,7 +23,7 @@ func NewDb() (Sql, error) {
 	user := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
-	connection := user + ":" + password + "@/" + dbname
+	connection := user + ":" + password + "@/" + dbname + "?parseTime=true"
 
 	db, err := sql.Open("mysql", connection)
 	if err != nil {
@@ -108,7 +108,7 @@ func checkOptionalField(o models.Option) (sql.NullString, error) {
 	return str, nil
 }
 
-func (sqlDb *Sql) CreateNewConn(conn models.NotionConnection) error {
+func (sqlDb *Sql) CreateNewConn(conn models.NotionConn) error {
 	q, err := sqlDb.Db.Prepare(`
     INSERT INTO connections (
         connection_id,
@@ -179,4 +179,77 @@ func (sqlDb *Sql) CreateNewConn(conn models.NotionConnection) error {
 	}
 
 	return nil
+}
+
+func (sqlDb *Sql) GetConns(userId string) ([]models.NotionConn, error) {
+	q, err := sqlDb.Db.Prepare(`
+	SELECT 
+	    calendar_id,
+	    calendar_name,
+	    user_id,
+	    db,
+	    event_name,
+	    date,
+	    description,
+	    done_method,
+        done_method_option,
+        sync_rate,
+        statistic,
+        next_exec_time
+    FROM connections WHERE user_id = ?
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer q.Close()
+
+	rows, err := q.Query(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	notionConns := []models.NotionConn{}
+
+	for rows.Next() {
+		var notionConn models.NotionConn
+		var db []byte
+		var eventName []byte
+		var date []byte
+		var description []byte
+		var doneMethod []byte
+		var doneMethodOption []byte
+
+		err := rows.Scan(
+			&notionConn.CalendarId,
+			&notionConn.CalendarName,
+			&notionConn.UserId,
+			&db,
+			&eventName,
+			&date,
+			&description,
+			&doneMethod,
+			&doneMethodOption,
+			&notionConn.SyncRate,
+			&notionConn.Statistic,
+			&notionConn.NextExecTime,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(db, &notionConn.Db)
+		err = json.Unmarshal(db, &notionConn.EventName)
+		err = json.Unmarshal(db, &notionConn.Date)
+		err = json.Unmarshal(db, &notionConn.Description)
+		err = json.Unmarshal(db, &notionConn.DoneMethod)
+		err = json.Unmarshal(db, &notionConn.DoneMethodOption)
+		if err != nil {
+			return nil, err
+		}
+
+		notionConns = append(notionConns, notionConn)
+	}
+
+	return notionConns, nil
 }

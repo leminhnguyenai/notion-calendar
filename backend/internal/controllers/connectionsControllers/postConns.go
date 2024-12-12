@@ -64,7 +64,7 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = sqlDb.CreateNewConn(models.NotionConnection{
+	err = sqlDb.CreateNewConn(models.NotionConn{
 		UserInputNotionConn: requestBody.Connection,
 		ConnectionId:        connectionId,
 		CalendarId:          calendarId,
@@ -77,5 +77,10 @@ func PostConns(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Connection added successfully"))
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(map[string]interface{}{
+		"message": "Connection added successfully",
+	})
 }
