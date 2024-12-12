@@ -11,7 +11,7 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
 )
 
-func PostConns(w http.ResponseWriter, r *http.Request) {
+func PostConnection(w http.ResponseWriter, r *http.Request) {
 	refreshToken, ok := r.Context().Value("refreshToken").(string)
 	if !ok || refreshToken == "" {
 		http.Error(

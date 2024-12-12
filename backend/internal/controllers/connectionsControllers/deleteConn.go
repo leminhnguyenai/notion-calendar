@@ -6,10 +6,9 @@ import (
 	"net/http"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 )
 
-func PatchConnection(w http.ResponseWriter, r *http.Request) {
+func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -17,8 +16,7 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		ConnectionId string                     `json:"connectionId"`
-		Connection   models.UserInputNotionConn `json:"connection"`
+		ConnectionId string `json:"connectionId"`
 	}
 
 	err = json.Unmarshal(body, &requestBody)
@@ -36,9 +34,10 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlDb.UpdateConn(requestBody.ConnectionId, requestBody.Connection)
+	err = sqlDb.DeleteConn(requestBody.ConnectionId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -46,6 +45,6 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(false)
 	encoder.Encode(map[string]interface{}{
-		"message": "Connection updated successfully",
+		"message": "Connection deleted successfully",
 	})
 }

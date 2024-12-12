@@ -24,11 +24,16 @@ func Connections() *api.Router {
 		path.Join(dirname, ".././internal/schemas/userInputNotionConn.json"),
 	)
 
+	validateDeleteConn := middlewares.InitSchemaValidation(
+		path.Join(dirname, ".././internal/schemas/deleteNotionConn.json"),
+	)
+
 	router.Use(middlewares.ValidateAuth)
 
-	router.GET("/", http.HandlerFunc(GetConns))
-	router.POST("/", validateUserInputConn(http.HandlerFunc(PostConns)))
-	router.PATCH("/", validateUserInputConn(http.HandlerFunc(PatchConn)))
+	router.GET("/", http.HandlerFunc(GetConnections))
+	router.POST("/", validateUserInputConn(http.HandlerFunc(PostConnection)))
+	router.PATCH("/", validateUserInputConn(http.HandlerFunc(PatchConnection)))
+	router.DELETE("/", validateDeleteConn(http.HandlerFunc(DeleteConnection)))
 
 	return router
 }

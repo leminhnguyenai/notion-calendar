@@ -323,3 +323,21 @@ func (sqlDb *Sql) UpdateConn(
 
 	return nil
 }
+
+func (sqlDb *Sql) DeleteConn(connectionId string) error {
+	q, err := sqlDb.Db.Prepare(
+		"DELETE FROM connections WHERE connection_id = ?",
+	)
+	if err != nil {
+		return err
+	}
+
+	defer q.Close()
+
+	_, err = q.Exec(connectionId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
