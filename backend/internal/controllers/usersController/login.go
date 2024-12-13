@@ -31,11 +31,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		oauth2.ApprovalForce,
 	)
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(false)
 	encoder.Encode(map[string]interface{}{
-		"urk": consentScreenUrl,
+		"url": consentScreenUrl,
 	})
 }
