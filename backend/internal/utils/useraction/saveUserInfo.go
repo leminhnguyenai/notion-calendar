@@ -38,10 +38,10 @@ func SaveUserInfo(code string) error {
 		return err
 	}
 
-	refreshToken := token.RefreshToken
+	googleRefreshToken := token.RefreshToken
 
 	userId, err := encryption.GenerateHash(
-		fmt.Sprintf("%s_%s", time.Now().String(), refreshToken),
+		fmt.Sprintf("%s_%s", time.Now().String(), googleRefreshToken),
 	)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func SaveUserInfo(code string) error {
 
 	defer sqlDb.Db.Close()
 
-	err = sqlDb.CreateNewUser(userId, email, refreshToken)
+	err = sqlDb.CreateNewUser(userId, email, googleRefreshToken)
 	if err != nil {
 		return err
 	}

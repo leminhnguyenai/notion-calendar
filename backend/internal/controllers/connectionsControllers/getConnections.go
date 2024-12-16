@@ -8,11 +8,11 @@ import (
 )
 
 func GetConnections(w http.ResponseWriter, r *http.Request) {
-	refreshToken, ok := r.Context().Value("refreshToken").(string)
-	if !ok || refreshToken == "" {
+	googleRefreshToken, ok := r.Context().Value("googleRefreshToken").(string)
+	if !ok || googleRefreshToken == "" {
 		http.Error(
 			w,
-			"Can't find user refresh token",
+			"Can't find user google refresh token",
 			http.StatusInternalServerError,
 		)
 		return
@@ -27,7 +27,9 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 	var userId string
 
 	err = sqlDb.Db.QueryRow(
-		"SELECT user_id FROM users WHERE refresh_token = ?", refreshToken).
+		"SELECT user_id FROM users WHERE google_refresh_token = ?",
+		googleRefreshToken,
+	).
 		Scan(&userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

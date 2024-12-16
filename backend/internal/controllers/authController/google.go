@@ -6,16 +6,10 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/useraction"
 )
 
 func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
-	if err := filehandling.LoadEnv(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	parsedUrl, err := url.Parse(
 		fmt.Sprintf("http://localhost%s%s", os.Getenv("PORT"), r.URL.String()),
 	)
@@ -32,6 +26,21 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// TODO: Implement JWT
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    "JWT string",
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   120,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, &cookie)
+	// TODO: Redirect after setting the cookie
 
 	w.WriteHeader(http.StatusOK)
 }

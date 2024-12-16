@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -15,10 +14,6 @@ func Authenticate(
 	ctx context.Context,
 	code string,
 ) (*oauth2.Token, *http.Client, error) {
-	if err := filehandling.LoadEnv(); err != nil {
-		return nil, nil, err
-	}
-
 	conf := &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),

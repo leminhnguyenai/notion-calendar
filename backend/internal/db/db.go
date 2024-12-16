@@ -8,18 +8,13 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
 type Sql struct {
 	Db *sql.DB
 }
 
-func NewDb() (Sql, error) {
-	if err := filehandling.LoadEnv(); err != nil {
-		return Sql{}, err
-	}
-
+func NewDb() (*Sql, error) {
 	user := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
@@ -27,26 +22,28 @@ func NewDb() (Sql, error) {
 
 	db, err := sql.Open("mysql", connection)
 	if err != nil {
-		return Sql{}, err
+		return &Sql{}, err
 	}
 
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
-	return Sql{Db: db}, nil
+	return &Sql{Db: db}, nil
 }
 
 // CRUD operations for users
 
-func (sqlDb *Sql) GetUser(refreshToken string) (*sql.Rows, error) {
-	q, err := sqlDb.Db.Prepare("SELECT * FROM users WHERE refresh_token = ?")
+func (sqlDb *Sql) GetUser(googleRefreshToken string) (*sql.Rows, error) {
+	q, err := sqlDb.Db.Prepare(
+		"SELECT * FROM users WHERE google_refresh_token = ?",
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer q.Close()
 
-	rows, err := q.Query(refreshToken)
+	rows, err := q.Query(googleRefreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +54,12 @@ func (sqlDb *Sql) GetUser(refreshToken string) (*sql.Rows, error) {
 func (sql *Sql) CreateNewUser(
 	userId string,
 	email string,
-	refreshToken string,
+	googleRefreshToken string,
 ) error {
 	userInputQ, err := sql.Db.Prepare(
-		`INSERT INTO users(user_id, email, refresh_token, role) 
-             VALUES(?, ?, ?, 'user') 
-             ON DUPLICATE KEY UPDATE refresh_token = ?`,
+		`INSERT INTO users(user_id, email, google_refresh_token, role)
+             VALUES(?, ?, ?, 'user')
+             ON DUPLICATE KEY UPDATE google_refresh_token = ?`,
 	)
 	if err != nil {
 		return err
@@ -79,7 +76,7 @@ func (sql *Sql) CreateNewUser(
 
 	defer settinggInputQ.Close()
 
-	if _, err = userInputQ.Exec(userId, email, refreshToken, refreshToken); err != nil {
+	if _, err = userInputQ.Exec(userId, email, googleRefreshToken, googleRefreshToken); err != nil {
 		return err
 	}
 
@@ -92,7 +89,7 @@ func (sql *Sql) CreateNewUser(
 
 func (sqlDb *Sql) GetConns(userId string) ([]models.NotionConn, error) {
 	q, err := sqlDb.Db.Prepare(`
-	SELECT 
+	SELECT
 	    connection_id,
 	    calendar_id,
 	    calendar_name,
@@ -261,7 +258,7 @@ func (sqlDb *Sql) UpdateConn(
 	conn models.UserInputNotionConn,
 ) error {
 	q, err := sqlDb.Db.Prepare(`
-    UPDATE connections SET 
+    UPDATE connections SET
             calendar_name = ?,
             sync_rate = ?,
             statistic = ?,

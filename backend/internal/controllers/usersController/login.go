@@ -1,22 +1,15 @@
 package userscontroller
 
 import (
-	"encoding/json"
 	"net/http"
 	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	if err := filehandling.LoadEnv(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 	conf := &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
@@ -25,17 +18,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Endpoint:     google.Endpoint,
 	}
 
-	consentScreenUrl := conf.AuthCodeURL(
+	googleConsentUrl := conf.AuthCodeURL(
 		"state-token",
 		oauth2.AccessTypeOffline,
 		oauth2.ApprovalForce,
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	encoder := json.NewEncoder(w)
-	encoder.SetEscapeHTML(false)
-	encoder.Encode(map[string]interface{}{
-		"url": consentScreenUrl,
-	})
+	http.Redirect(w, r, googleConsentUrl, http.StatusTemporaryRedirect)
+}
+
+func NotionLogin(w http.ResponseWriter, r *http.Request) {
+	notionConsentUrl := os.Getenv("NOTION_CONSENT_URL")
+
+	http.Redirect(w, r, notionConsentUrl, http.StatusTemporaryRedirect)
 }

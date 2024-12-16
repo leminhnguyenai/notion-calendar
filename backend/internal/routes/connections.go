@@ -10,8 +10,6 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
-// TODO: Add DELETE connections route (Without Google API interaction)
-
 func Connections() *api.Router {
 	dirname, err := filehandling.GetDirname()
 	if err != nil {

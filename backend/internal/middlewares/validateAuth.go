@@ -17,7 +17,7 @@ func ValidateAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		refreshToken := authHeader[len("Bearer "):]
+		googleRefreshToken := authHeader[len("Bearer "):]
 
 		sqlDb, err := NewDb()
 		if err != nil {
@@ -29,7 +29,7 @@ func ValidateAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		rows, err := sqlDb.GetUser(refreshToken)
+		rows, err := sqlDb.GetUser(googleRefreshToken)
 		if err != nil {
 			http.Error(
 				w,
@@ -52,7 +52,11 @@ func ValidateAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "refreshToken", refreshToken)
+		ctx := context.WithValue(
+			r.Context(),
+			"googleRefreshToken",
+			googleRefreshToken,
+		)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
