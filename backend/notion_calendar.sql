@@ -1,12 +1,13 @@
 CREATE TABLE users (
     user_id VARCHAR(72) PRIMARY KEY,
     email VARCHAR(256) UNIQUE NOT NULL,
-    refresh_token VARCHAR(512),
+    google_refresh_token VARCHAR(512) UNIQUE NOT NULL,
+    notion_access_token VARCHAR(512) UNIQUE,
     role ENUM("user", "admin") NOT NULL DEFAULT "user"
 );
 
 CREATE TABLE connections (
-    connection_id VARCHAR(72) PRIMARY KEY
+    connection_id VARCHAR(72) PRIMARY KEY,
     calendar_id VARCHAR(52),
     user_id VARCHAR(72) NOT NULL,
     calendar_name VARCHAR(90) NOT NULL,
