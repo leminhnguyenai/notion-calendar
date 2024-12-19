@@ -22,7 +22,7 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		ConnectionId string                     `json:"connectionId"`
+		ConnectionId string                     `json:"connection_id"`
 		Connection   models.UserInputNotionConn `json:"connection"`
 	}
 

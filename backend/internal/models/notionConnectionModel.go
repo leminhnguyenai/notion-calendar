@@ -8,14 +8,14 @@ type Option struct {
 }
 
 type UserInputNotionConn struct {
-	CalendarName     string `json:"calendarName"`
+	CalendarName     string `json:"calendar_name"`
 	Db               Option `json:"db"`
-	EventName        Option `json:"eventName"`
+	EventName        Option `json:"event_name"`
 	Date             Option `json:"date"`
 	Description      Option `json:"description"`
-	DoneMethod       Option `json:"doneMethod"`
-	DoneMethodOption Option `json:"doneMethodOption"`
-	SyncRate         int    `json:"syncRate"`
+	DoneMethod       Option `json:"done_method"`
+	DoneMethodOption Option `json:"done_method_option"`
+	SyncRate         int    `json:"sync_rate"`
 	Statistic        bool   `json:"statistic"`
 }
 

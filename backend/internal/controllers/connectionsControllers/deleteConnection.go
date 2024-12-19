@@ -21,7 +21,7 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		ConnectionId string `json:"connectionId"`
+		ConnectionId string `json:"connection_id"`
 	}
 
 	err = json.Unmarshal(body, &requestBody)
