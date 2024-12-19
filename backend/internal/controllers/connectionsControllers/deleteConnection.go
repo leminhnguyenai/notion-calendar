@@ -1,14 +1,19 @@
 package connectionscontrollers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 )
 
 func DeleteConnection(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,7 +39,7 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlDb.DeleteConn(requestBody.ConnectionId)
+	err = sqlDb.DeleteConn(ctx, requestBody.ConnectionId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

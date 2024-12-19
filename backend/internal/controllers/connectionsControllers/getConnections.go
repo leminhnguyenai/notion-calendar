@@ -1,13 +1,18 @@
 package connectionscontrollers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 )
 
 func GetConnections(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
 	googleRefreshToken, ok := r.Context().Value("googleRefreshToken").(string)
 	if !ok || googleRefreshToken == "" {
 		http.Error(
@@ -35,7 +40,7 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	notionConns, err := sqlDb.GetConns(userId)
+	notionConns, err := sqlDb.GetConns(ctx, userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,15 +1,20 @@
 package connectionscontrollers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 )
 
 func PatchConnection(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -36,7 +41,11 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlDb.UpdateConn(requestBody.ConnectionId, requestBody.Connection)
+	err = sqlDb.UpdateConn(
+		ctx,
+		requestBody.ConnectionId,
+		requestBody.Connection,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

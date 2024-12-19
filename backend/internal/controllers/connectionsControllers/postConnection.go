@@ -1,6 +1,7 @@
 package connectionscontrollers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,6 +13,9 @@ import (
 )
 
 func PostConnection(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
 	googleRefreshToken, ok := r.Context().Value("googleRefreshToken").(string)
 	if !ok || googleRefreshToken == "" {
 		http.Error(
@@ -66,7 +70,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = sqlDb.CreateNewConn(models.NotionConn{
+	err = sqlDb.CreateNewConn(ctx, models.NotionConn{
 		UserInputNotionConn: requestBody.Connection,
 		ConnectionId:        connectionId,
 		CalendarId:          calendarId,

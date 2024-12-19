@@ -13,7 +13,8 @@ import (
 )
 
 func SaveUserInfo(code string) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
 
 	token, client, err := auth.Authenticate(ctx, code)
 	if err != nil {
@@ -54,7 +55,7 @@ func SaveUserInfo(code string) error {
 
 	defer sqlDb.Db.Close()
 
-	err = sqlDb.CreateNewUser(userId, email, googleRefreshToken)
+	err = sqlDb.CreateNewUser(ctx, userId, email, googleRefreshToken)
 	if err != nil {
 		return err
 	}

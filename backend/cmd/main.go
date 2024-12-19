@@ -1,25 +1,20 @@
 package main
 
 import (
-	"log"
-
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/app"
 )
 
-func run() error {
+func run() {
 	serverErrChan := make(chan error)
 
 	go app.StartServer(serverErrChan)
 
 	select {
 	case err := <-serverErrChan:
-		return err
+		panic(err)
 	}
 }
 
 func main() {
-	err := run()
-	if err != nil {
-		log.Println(err)
-	}
+	run()
 }
