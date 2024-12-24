@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
 
 func DeleteConnection(w http.ResponseWriter, r *http.Request) {
@@ -33,13 +34,15 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No connection id provided", http.StatusBadRequest)
 	}
 
-	sqlDb, err := NewDb()
+	sql, err := db.InitDb()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = sqlDb.DeleteConn(ctx, requestBody.ConnectionId)
+	connService := services.NewConnService(sql)
+
+	err = connService.DeleteConn(ctx, requestBody.ConnectionId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

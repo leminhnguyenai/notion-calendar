@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
 )
 
@@ -53,15 +54,17 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlDb, err := NewDb()
+	sql, err := db.InitDb()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	connService := services.NewConnService(sql)
+
 	var userId string
 
-	err = sqlDb.Db.QueryRow(
+	err = sql.QueryRow(
 		"SELECT user_id FROM users WHERE google_refresh_token = ?",
 		googleRefreshToken,
 	).
@@ -70,7 +73,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = sqlDb.CreateNewConn(ctx, models.NotionConn{
+	err = connService.CreateNewConn(ctx, models.NotionConn{
 		UserInputNotionConn: requestBody.Connection,
 		ConnectionId:        connectionId,
 		CalendarId:          calendarId,

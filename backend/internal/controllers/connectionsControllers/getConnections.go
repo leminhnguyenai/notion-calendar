@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
 
 func GetConnections(w http.ResponseWriter, r *http.Request) {
@@ -23,15 +24,17 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlDb, err := NewDb()
+	sql, err := db.InitDb()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	connService := services.NewConnService(sql)
+
 	var userId string
 
-	err = sqlDb.Db.QueryRow(
+	err = sql.QueryRow(
 		"SELECT user_id FROM users WHERE google_refresh_token = ?",
 		googleRefreshToken,
 	).
@@ -40,7 +43,7 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	notionConns, err := sqlDb.GetConns(ctx, userId)
+	notionConns, err := connService.GetConns(ctx, userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

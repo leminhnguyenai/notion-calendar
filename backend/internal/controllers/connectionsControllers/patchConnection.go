@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
 
 func PatchConnection(w http.ResponseWriter, r *http.Request) {
@@ -35,13 +36,15 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No connection id provided", http.StatusBadRequest)
 	}
 
-	sqlDb, err := NewDb()
+	sql, err := db.InitDb()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = sqlDb.UpdateConn(
+	connService := services.NewConnService(sql)
+
+	err = connService.UpdateConn(
 		ctx,
 		requestBody.ConnectionId,
 		requestBody.Connection,

@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
 
 func ValidateAuth(next http.Handler) http.Handler {
@@ -19,44 +20,28 @@ func ValidateAuth(next http.Handler) http.Handler {
 
 		googleRefreshToken := authHeader[len("Bearer "):]
 
-		sqlDb, err := NewDb()
-		if err != nil {
-			http.Error(
-				w,
-				"Error retreiving authentication from Database",
-				http.StatusInternalServerError,
-			)
-			return
-		}
-
-		rows, err := sqlDb.GetUser(googleRefreshToken)
-		if err != nil {
-			http.Error(
-				w,
-				"Database error",
-				http.StatusInternalServerError,
-			)
-		}
-
-		rowsCount := 0
-		for rows.Next() {
-			rowsCount++
-		}
-
-		if rowsCount != 1 {
-			http.Error(
-				w,
-				"Error validating token",
-				http.StatusUnauthorized,
-			)
-			return
-		}
-
 		ctx := context.WithValue(
 			r.Context(),
 			"googleRefreshToken",
 			googleRefreshToken,
 		)
+
+		sql, err := db.InitDb()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		defer sql.Close()
+
+		userService := services.NewUserService(sql)
+
+		_, err = userService.GetUser(ctx, googleRefreshToken)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

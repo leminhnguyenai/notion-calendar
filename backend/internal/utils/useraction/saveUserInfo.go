@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/auth"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
 	oauth2api "google.golang.org/api/oauth2/v2"
@@ -13,8 +15,7 @@ import (
 )
 
 func SaveUserInfo(code string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
+	ctx := context.Background()
 
 	token, client, err := auth.Authenticate(ctx, code)
 	if err != nil {
@@ -48,14 +49,22 @@ func SaveUserInfo(code string) error {
 		return err
 	}
 
-	sqlDb, err := NewDb()
+	sql, err := db.InitDb()
 	if err != nil {
 		return err
 	}
 
-	defer sqlDb.Db.Close()
+	defer sql.Close()
 
-	err = sqlDb.CreateNewUser(ctx, userId, email, googleRefreshToken)
+	userService := services.NewUserService(sql)
+
+	user := models.User{
+		UserId:             userId,
+		Email:              email,
+		GoogleRefreshToken: googleRefreshToken,
+	}
+
+	err = userService.CreateNewUser(ctx, user)
 	if err != nil {
 		return err
 	}
