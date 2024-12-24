@@ -2,14 +2,14 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "connectionId": {
+    "connection_id": {
       "type": "string",
       "maxLength": 72
     },
     "connection": {
       "type": "object",
       "properties": {
-        "calendarName": {
+        "calendar_name": {
           "type": "string",
           "maxLength": 90
         },
@@ -24,7 +24,7 @@
             }
           }
         },
-        "eventName": {
+        "event_name": {
           "type": "object",
           "properties": {
             "name": {
@@ -57,7 +57,7 @@
             }
           }
         },
-        "doneMethod": {
+        "done_method": {
           "type": "object",
           "properties": {
             "name": {
@@ -68,7 +68,7 @@
             }
           }
         },
-        "doneMethodOption": {
+        "done_method_option": {
           "type": "object",
           "properties": {
             "name": {
@@ -79,7 +79,7 @@
             }
           }
         },
-        "syncRate": {
+        "sync_rate": {
           "type": "integer"
         },
         "statistic": {
@@ -87,11 +87,11 @@
         }
       },
       "required": [
-        "calendarName",
+        "calendar_name",
         "db",
-        "eventName",
+        "event_name",
         "date",
-        "syncRate",
+        "sync_rate",
         "statistic"
       ],
       "additionalProperties": false
