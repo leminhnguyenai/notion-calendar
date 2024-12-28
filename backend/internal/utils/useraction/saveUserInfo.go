@@ -14,12 +14,12 @@ import (
 	"google.golang.org/api/option"
 )
 
-func SaveUserInfo(code string) error {
+func SaveUserInfo(code string) (string, error) {
 	ctx := context.Background()
 
 	token, client, err := auth.Authenticate(ctx, code)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	oauth2Service, err := oauth2api.NewService(
@@ -27,17 +27,17 @@ func SaveUserInfo(code string) error {
 		option.WithHTTPClient(client),
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	userInfo, err := oauth2Service.Userinfo.Get().Do()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	email := userInfo.Email
 	if email == "" {
-		return err
+		return "", err
 	}
 
 	googleRefreshToken := token.RefreshToken
@@ -46,12 +46,12 @@ func SaveUserInfo(code string) error {
 		fmt.Sprintf("%s_%s", time.Now().String(), googleRefreshToken),
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer sql.Close()
@@ -66,8 +66,8 @@ func SaveUserInfo(code string) error {
 
 	err = userService.CreateNewUser(ctx, user)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return googleRefreshToken, nil
 }

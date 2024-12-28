@@ -21,7 +21,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	queryParams := parsedUrl.Query()
 	code := queryParams.Get("code")
 
-	err = useraction.SaveUserInfo(code)
+	token, err := useraction.SaveUserInfo(code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,7 +30,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	// TODO: Implement JWT
 	cookie := http.Cookie{
 		Name:     "token",
-		Value:    "JWT string",
+		Value:    token,
 		Path:     "/",
 		Domain:   "localhost",
 		MaxAge:   120,
@@ -40,7 +40,8 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &cookie)
-	// TODO: Redirect after setting the cookie
 
-	w.WriteHeader(http.StatusOK)
+	dashboardURL := "http://localhost" + os.Getenv("FRONTEND_PORT") + "/dashboard"
+
+	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
 }
