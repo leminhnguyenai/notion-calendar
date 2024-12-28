@@ -10,7 +10,7 @@ import (
 func LandingPageRouter() *api.Router {
 	router := api.NewRouter()
 
-	router.GET("/", http.HandlerFunc(controllers.LandingPageController))
+	router.GET("/", http.HandlerFunc(controllers.LandingPage))
 
 	return router
 }

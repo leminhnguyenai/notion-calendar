@@ -2,7 +2,7 @@ package controllers
 
 import "net/http"
 
-func GoogleLoginController(w http.ResponseWriter, r *http.Request) {
+func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(
 		w,
 		r,

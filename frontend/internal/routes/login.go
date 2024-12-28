@@ -10,7 +10,7 @@ import (
 func LoginRouter() *api.Router {
 	router := api.NewRouter()
 
-	router.GET("/google", http.HandlerFunc(controllers.GoogleLoginController))
+	router.GET("/google", http.HandlerFunc(controllers.GoogleLogin))
 
 	return router
 }

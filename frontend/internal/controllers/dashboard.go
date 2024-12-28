@@ -6,25 +6,30 @@ import (
 	"net/http"
 )
 
-func DashboardController(w http.ResponseWriter, r *http.Request) {
+type Data struct {
+	Token string
+}
+
+func Dashboard(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/dashboard.html")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	data := Data{}
+
 	cookie, err := r.Cookie("token")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		data.Token = ""
+		templ.Execute(w, data)
 		return
 	}
 
 	token := cookie.Value
 
-	data := struct {
-		Token string
-	}{
-		Token: token,
-	}
+	data.Token = token
+
+	http.SetCookie(w, cookie)
 
 	templ.Execute(w, data)
 }

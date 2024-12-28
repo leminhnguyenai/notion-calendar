@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func LandingPageController(w http.ResponseWriter, r *http.Request) {
+func LandingPage(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/landingPage.html")
 	if err != nil {
 		log.Fatal(err)
