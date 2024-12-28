@@ -6,7 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/leminhnguyenai/notion-calendar/frontend/internal/controllers"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/routes"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services/api"
 	"github.com/lpernett/godotenv"
 )
 
@@ -16,23 +17,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = godotenv.Load(path.Join(absPath, "../../.env"))
-	if err != nil {
+	if err = godotenv.Load(path.Join(absPath, "../../.env")); err != nil {
 		log.Fatal(err)
 	}
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc(
-		"/static/output.css",
-		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "static/output.css")
-		},
-	)
-
-	mux.HandleFunc("/", controllers.LandingPage)
-	mux.HandleFunc("/dashboard", controllers.Dashboard)
-	mux.HandleFunc("/login", controllers.GoogleLogin)
+	api.AddRouter(mux, "/", routes.LandingPageRouter())
+	api.AddRouter(mux, "/static", routes.StaticRouter())
+	api.AddRouter(mux, "/login", routes.LoginRouter())
+	api.AddRouter(mux, "/dashboard", routes.DashboardRouter())
 
 	port := os.Getenv("FRONTEND_PORT")
 

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func Dashboard(w http.ResponseWriter, r *http.Request) {
+func DashboardController(w http.ResponseWriter, r *http.Request) {
 	templ, err := template.ParseFiles("templates/dashboard.html")
 	if err != nil {
 		log.Fatal(err)
