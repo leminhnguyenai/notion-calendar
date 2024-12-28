@@ -12,7 +12,7 @@ func LoadEnv() error {
 		return err
 	}
 
-	if err := godotenv.Load(path.Join(dirname, "../.env")); err != nil {
+	if err := godotenv.Load(path.Join(dirname, "../../.env")); err != nil {
 		return err
 	}
 

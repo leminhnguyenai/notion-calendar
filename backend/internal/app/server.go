@@ -40,7 +40,7 @@ func StartServer(errChan chan error) {
 
 	srv := createServer()
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("BACKEND_PORT")
 	httpServer := &http.Server{
 		Addr:    port,
 		Handler: srv,
