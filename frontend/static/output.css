@@ -243,7 +243,7 @@ code,
 kbd,
 samp,
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: JetBrainsMono;
   /* 1 */
   font-feature-settings: normal;
   /* 2 */
@@ -554,6 +554,16 @@ video {
   display: none;
 }
 
+@font-face {
+  font-family: 'JetBrainsMono';
+
+  font-style: normal;
+
+  font-weight: 400;
+
+  src: url('/static/jet-brains-mono.tff') format('truetype');
+}
+
 .relative {
   position: relative;
 }
@@ -597,7 +607,7 @@ video {
 }
 
 .font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: JetBrainsMono;
 }
 
 .text-sm {
