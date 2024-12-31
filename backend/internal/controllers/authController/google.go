@@ -28,6 +28,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Implement JWT
+	// WARNING: Secure need to be set to true when in production
 	cookie := http.Cookie{
 		Name:     "token",
 		Value:    token,

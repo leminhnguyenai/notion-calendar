@@ -89,8 +89,8 @@ func (u *UserService) CreateNewUser(
 	defer cancel()
 
 	userInputQ, err := u.db.Prepare(
-		`INSERT INTO users(user_id, email, google_refresh_token, role)
-             VALUES(?, ?, ?, 'user')
+		`INSERT INTO users(user_id, email, google_refresh_token, role, reauth)
+             VALUES(?, ?, ?, 'user', false)
              ON DUPLICATE KEY UPDATE google_refresh_token = ?`,
 	)
 	if err != nil {
@@ -131,6 +131,47 @@ func (u *UserService) CreateNewUser(
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("Time out exceeded")
+		case err := <-errChan:
+			return err
+		}
+	}
+}
+
+func (u *UserService) SetReAuth(
+	ctx context.Context,
+	userId string,
+	reauth bool,
+) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	defer cancel()
+
+	q, err := u.db.Prepare(`
+	    UPDATE users SET (
+	        reauth = ?
+	    )
+	    WHERE user_id = >
+	`)
+	if err != nil {
+		return err
+	}
+
+	defer q.Close()
+
+	errChan := make(chan error)
+
+	go func() {
+		_, err = q.Exec(reauth, userId)
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("Time limit exceed")
 		case err := <-errChan:
 			return err
 		}
