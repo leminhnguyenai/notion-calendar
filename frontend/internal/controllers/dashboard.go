@@ -20,6 +20,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("token")
 	if err != nil {
+		log.Println(err.Error())
 		data.Token = ""
 		templ.Execute(w, data)
 		return
@@ -27,9 +28,20 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	token := cookie.Value
 
+	newCookie := &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   120,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+
 	data.Token = token
 
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, newCookie)
 
 	templ.Execute(w, data)
 }
