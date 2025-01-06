@@ -561,7 +561,7 @@ video {
 
   font-weight: 400;
 
-  src: url('/static/jet-brains-mono.tff') format('truetype');
+  src: url('/static/fonts/jet-brains-mono.ttf') format('truetype');
 }
 
 .relative {

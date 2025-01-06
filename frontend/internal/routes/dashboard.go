@@ -8,7 +8,7 @@ import (
 )
 
 func serveJS(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "static/dashboard.js")
+	http.ServeFile(w, r, "static/scripts/dashboard.js")
 }
 
 func DashboardRouter() *api.Router {

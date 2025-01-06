@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err = godotenv.Load(path.Join(absPath, "../../.env")); err != nil {
+	if err = godotenv.Load(path.Join(absPath, "../../../.env")); err != nil {
 		log.Fatal(err)
 	}
 

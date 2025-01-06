@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "main"
-  cmd = "go build -o main main.go"
+  bin = "bin/main"
+  cmd = "go build -o bin/main cmd/main.go"
   include = ["*.go"]
   exclude = ["bin" ]
 
