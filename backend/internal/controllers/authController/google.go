@@ -11,7 +11,11 @@ import (
 
 func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	parsedUrl, err := url.Parse(
-		fmt.Sprintf("http://localhost%s%s", os.Getenv("BACKEND_PORT"), r.URL.String()),
+		fmt.Sprintf(
+			"http://localhost%s%s",
+			os.Getenv("BACKEND_PORT"),
+			r.URL.String(),
+		),
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -42,7 +46,9 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &cookie)
 
-	dashboardURL := "http://localhost" + os.Getenv("FRONTEND_PORT") + "/dashboard"
+	dashboardURL := "http://localhost" + os.Getenv(
+		"FRONTEND_PORT",
+	) + "/dashboard"
 
 	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
 }

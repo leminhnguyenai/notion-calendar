@@ -18,7 +18,6 @@ func NewUserService(db *sql.DB) *UserService {
 	return &UserService{db: db}
 }
 
-// TODO: Change this later to use user's id instead of the token
 func (u *UserService) GetUser(
 	ctx context.Context, userId string,
 ) (*models.User, error) {
@@ -93,7 +92,6 @@ func (u *UserService) CreateNewUser(
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
 	defer cancel()
 
-	// TODO: Add a check before this to check whether the use exists already or not
 	userInputQ, err := u.db.Prepare(
 		`INSERT IGNORE INTO users(user_id, email, google_refresh_token, role, re_auth)
              VALUES(?, ?, ?, ?, ?)`)

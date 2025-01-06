@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -11,17 +12,18 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/validate"
 )
 
 func PostConnection(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	googleRefreshToken, ok := r.Context().Value("googleRefreshToken").(string)
-	if !ok || googleRefreshToken == "" {
+	jwtToken, ok := r.Context().Value("jwtToken").(*validate.JWTToken)
+	if !ok || jwtToken == nil {
 		http.Error(
 			w,
-			"Can't find user refresh token",
+			"Can't find user JWT token",
 			http.StatusInternalServerError,
 		)
 		return
@@ -60,16 +62,8 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	connService := services.NewConnService(sql)
 
-	var userId string
-
-	err = sql.QueryRow(
-		"SELECT user_id FROM users WHERE google_refresh_token = ?",
-		googleRefreshToken,
-	).
-		Scan(&userId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	userId := jwtToken.Sub
+	log.Println(userId)
 
 	err = connService.CreateNewConn(ctx, models.NotionConn{
 		UserInputNotionConn: requestBody.Connection,

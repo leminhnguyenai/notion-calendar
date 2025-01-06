@@ -2,18 +2,22 @@ package useraction
 
 import (
 	"context"
+	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/auth"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/validate"
 	oauth2api "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 )
 
 func SaveUserInfo(code string) (string, error) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	secretKey := os.Getenv("JWT_SECRET_KEY")
 
 	token, client, err := auth.Authenticate(ctx, code)
 	if err != nil {
@@ -34,10 +38,6 @@ func SaveUserInfo(code string) (string, error) {
 	}
 
 	token_id := userInfo.Id
-	encryptedId, err := encryption.Encrypt(token_id)
-	if err != nil {
-		return "", err
-	}
 
 	email := userInfo.Email
 	if email == "" {
@@ -56,7 +56,7 @@ func SaveUserInfo(code string) (string, error) {
 	userService := services.NewUserService(sql)
 
 	user := models.User{
-		UserId:             encryptedId,
+		UserId:             token_id,
 		Email:              email,
 		GoogleRefreshToken: googleRefreshToken,
 		Role:               "user",
@@ -68,5 +68,14 @@ func SaveUserInfo(code string) (string, error) {
 		return "", err
 	}
 
-	return googleRefreshToken, nil
+	tokenString, err := validate.CreateToken(
+		user.UserId,
+		user.GoogleRefreshToken,
+		secretKey,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

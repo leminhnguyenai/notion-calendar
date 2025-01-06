@@ -26,7 +26,7 @@ func Connections() *api.Router {
 		path.Join(dirname, ".././internal/schemas/deleteNotionConn.json"),
 	)
 
-	router.Use(middlewares.ValidateAuth)
+	router.Use(middlewares.ValidateToken)
 
 	router.GET("/", http.HandlerFunc(GetConnections))
 	router.POST("/", validateUserInputConn(http.HandlerFunc(PostConnection)))

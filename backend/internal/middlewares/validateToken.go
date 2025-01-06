@@ -3,14 +3,17 @@ package middlewares
 import (
 	"context"
 	"net/http"
+	"os"
 	"strings"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/validate"
 )
 
-func ValidateAuth(next http.Handler) http.Handler {
+// TODO: Add mechanism for checking and blacklisting expired JWT token
+func ValidateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		secretKey := os.Getenv("JWT_SECRET_KEY")
+
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -18,29 +21,25 @@ func ValidateAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		googleRefreshToken := authHeader[len("Bearer "):]
+		tokenString := authHeader[len("Bearer "):]
+
+		claims, err := validate.VerifyToken(tokenString, secretKey)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		jwtToken, err := validate.ParseJWTToken(claims)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		ctx := context.WithValue(
 			r.Context(),
-			"googleRefreshToken",
-			googleRefreshToken,
+			"jwtToken",
+			jwtToken,
 		)
-
-		sql, err := db.InitDb()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		defer sql.Close()
-
-		userService := services.NewUserService(sql)
-
-		_, err = userService.GetUser(ctx, googleRefreshToken)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
