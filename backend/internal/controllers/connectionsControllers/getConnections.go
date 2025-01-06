@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/validate"
 )
 
 func GetConnections(w http.ResponseWriter, r *http.Request) {

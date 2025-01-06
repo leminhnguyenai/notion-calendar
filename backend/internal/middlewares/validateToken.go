@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 )
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token

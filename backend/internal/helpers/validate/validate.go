@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/encryption"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/encryption"
 )
 
 type JWTToken struct {

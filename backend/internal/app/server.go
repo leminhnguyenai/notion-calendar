@@ -8,7 +8,6 @@ import (
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/routes"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -34,10 +33,6 @@ func createServer() http.Handler {
 }
 
 func StartServer(errChan chan error) {
-	if err := filehandling.LoadEnv(); err != nil {
-		errChan <- err
-	}
-
 	srv := createServer()
 
 	port := os.Getenv("BACKEND_PORT")

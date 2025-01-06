@@ -2,19 +2,22 @@ package routes
 
 import (
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/connectionsControllers"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/utils/filehandling"
 )
 
 func Connections() *api.Router {
-	dirname, err := filehandling.GetDirname()
+	absPath, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
+
+	dirname := filepath.Dir(absPath)
 
 	router := api.NewRouter()
 
