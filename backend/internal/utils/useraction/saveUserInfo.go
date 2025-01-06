@@ -2,8 +2,6 @@ package useraction
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
@@ -35,19 +33,18 @@ func SaveUserInfo(code string) (string, error) {
 		return "", err
 	}
 
+	token_id := userInfo.Id
+	encryptedId, err := encryption.Encrypt(token_id)
+	if err != nil {
+		return "", err
+	}
+
 	email := userInfo.Email
 	if email == "" {
 		return "", err
 	}
 
 	googleRefreshToken := token.RefreshToken
-
-	userId, err := encryption.GenerateHash(
-		fmt.Sprintf("%s_%s", time.Now().String(), googleRefreshToken),
-	)
-	if err != nil {
-		return "", err
-	}
 
 	sql, err := db.InitDb()
 	if err != nil {
@@ -59,9 +56,11 @@ func SaveUserInfo(code string) (string, error) {
 	userService := services.NewUserService(sql)
 
 	user := models.User{
-		UserId:             userId,
+		UserId:             encryptedId,
 		Email:              email,
 		GoogleRefreshToken: googleRefreshToken,
+		Role:               "user",
+		ReAuth:             false,
 	}
 
 	err = userService.CreateNewUser(ctx, user)

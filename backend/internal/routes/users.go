@@ -11,7 +11,6 @@ import (
 func Users() *api.Router {
 	router := api.NewRouter()
 
-	// TODO: Add a route for notion/authentication
 	router.GET("/google/login", http.HandlerFunc(GoogleLogin))
 	router.GET(
 		"/notion/login",

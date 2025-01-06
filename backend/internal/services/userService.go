@@ -18,8 +18,9 @@ func NewUserService(db *sql.DB) *UserService {
 	return &UserService{db: db}
 }
 
+// TODO: Change this later to use user's id instead of the token
 func (u *UserService) GetUser(
-	ctx context.Context, googleRefreshToken string,
+	ctx context.Context, userId string,
 ) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
 	defer cancel()
@@ -30,8 +31,9 @@ func (u *UserService) GetUser(
            email,
            google_refresh_token,
            notion_access_token,
-           role
-		FROM users WHERE google_refresh_token = ?`,
+           role,
+           re_auth 
+		FROM users WHERE user_id = ?`,
 	)
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func (u *UserService) GetUser(
 
 	go func() {
 		rows, err := q.Query(
-			googleRefreshToken,
+			userId,
 		)
 		if err != nil {
 			resch <- Response{nil, err}
@@ -71,13 +73,16 @@ func (u *UserService) GetUser(
 					&user.GoogleRefreshToken,
 					&user.NotionAccessToken,
 					&user.Role,
+					&user.ReAuth,
 				)
 				if err != nil {
 					return nil, err
 				}
+				return &user, nil
 			}
 
-			return &user, nil
+			// NOTE: If no row is scanned, then return no user as nil
+			return nil, nil
 		}
 	}
 }
@@ -88,11 +93,10 @@ func (u *UserService) CreateNewUser(
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
 	defer cancel()
 
+	// TODO: Add a check before this to check whether the use exists already or not
 	userInputQ, err := u.db.Prepare(
-		`INSERT INTO users(user_id, email, google_refresh_token, role, reauth)
-             VALUES(?, ?, ?, 'user', false)
-             ON DUPLICATE KEY UPDATE google_refresh_token = ?`,
-	)
+		`INSERT IGNORE INTO users(user_id, email, google_refresh_token, role, re_auth)
+             VALUES(?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -115,7 +119,8 @@ func (u *UserService) CreateNewUser(
 			user.UserId,
 			user.Email,
 			user.GoogleRefreshToken,
-			user.GoogleRefreshToken,
+			user.Role,
+			user.ReAuth,
 		); err != nil {
 			errChan <- err
 		}
@@ -149,7 +154,7 @@ func (u *UserService) SetReAuth(
 	    UPDATE users SET (
 	        reauth = ?
 	    )
-	    WHERE user_id = >
+	    WHERE user_id = ?
 	`)
 	if err != nil {
 		return err

@@ -46,9 +46,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 	// TODO: Change this later when adding Google Calendar API operations
 	calendarId := "Skibidi"
 
-	connectionId, err := encryption.GenerateHash(
-		calendarId + time.Now().String(),
-	)
+	connectionId, err := encryption.Encrypt(calendarId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
