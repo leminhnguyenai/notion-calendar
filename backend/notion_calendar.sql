@@ -1,7 +1,6 @@
 CREATE TABLE users (
     user_id VARCHAR(256) PRIMARY KEY,
     email VARCHAR(256) UNIQUE NOT NULL,
-    google_refresh_token VARCHAR(512) UNIQUE NOT NULL,
     notion_access_token VARCHAR(512) UNIQUE,
     role ENUM("user", "admin") NOT NULL DEFAULT "user",
     re_auth BOOLEAN NOT NULL
@@ -40,13 +39,13 @@ CREATE TABLE settings (
 );
 
 CREATE TABLE jwt_tokens_blacklisting (
-   token_id VARCHAR(72) PRIMARY KEY,
+   jwt_token_id VARCHAR(72) PRIMARY KEY,
    user_id VARCHAR(256),
    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 CREATE TABLE fingerprints_list (
-    fingerprint_id VARCHAR(256) PRIMARY KEY,
+   fingerprint_id VARCHAR(256) PRIMARY KEY,
    user_id VARCHAR(72),
    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 )
