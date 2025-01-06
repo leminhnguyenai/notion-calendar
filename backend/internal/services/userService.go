@@ -28,7 +28,6 @@ func (u *UserService) GetUser(
 		`SELECT 
            user_id,
            email,
-           google_refresh_token,
            notion_access_token,
            role,
            re_auth 
@@ -69,7 +68,6 @@ func (u *UserService) GetUser(
 				err := res.rows.Scan(
 					&user.UserId,
 					&user.Email,
-					&user.GoogleRefreshToken,
 					&user.NotionAccessToken,
 					&user.Role,
 					&user.ReAuth,
@@ -93,8 +91,8 @@ func (u *UserService) CreateNewUser(
 	defer cancel()
 
 	userInputQ, err := u.db.Prepare(
-		`INSERT IGNORE INTO users(user_id, email, google_refresh_token, role, re_auth)
-             VALUES(?, ?, ?, ?, ?)`)
+		`INSERT IGNORE INTO users(user_id, email, role, re_auth)
+             VALUES(?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -116,7 +114,6 @@ func (u *UserService) CreateNewUser(
 		if _, err = userInputQ.Exec(
 			user.UserId,
 			user.Email,
-			user.GoogleRefreshToken,
 			user.Role,
 			user.ReAuth,
 		); err != nil {

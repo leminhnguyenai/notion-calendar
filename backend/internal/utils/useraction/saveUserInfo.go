@@ -56,11 +56,10 @@ func SaveUserInfo(code string) (string, error) {
 	userService := services.NewUserService(sql)
 
 	user := models.User{
-		UserId:             token_id,
-		Email:              email,
-		GoogleRefreshToken: googleRefreshToken,
-		Role:               "user",
-		ReAuth:             false,
+		UserId: token_id,
+		Email:  email,
+		Role:   "user",
+		ReAuth: false,
 	}
 
 	err = userService.CreateNewUser(ctx, user)
@@ -70,7 +69,7 @@ func SaveUserInfo(code string) (string, error) {
 
 	tokenString, err := validate.CreateToken(
 		user.UserId,
-		user.GoogleRefreshToken,
+		googleRefreshToken,
 		secretKey,
 	)
 	if err != nil {
