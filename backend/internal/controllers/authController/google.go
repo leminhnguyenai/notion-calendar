@@ -7,14 +7,40 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/auth"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	oauth2api "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 )
+
+func authenticate(
+	ctx context.Context,
+	code string,
+) (*oauth2.Token, *http.Client, error) {
+	conf := &oauth2.Config{
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
+		Scopes:       config.Scopes,
+		Endpoint:     google.Endpoint,
+	}
+
+	token, err := conf.Exchange(ctx, code)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tokenSource := conf.TokenSource(ctx, token)
+
+	client := oauth2.NewClient(ctx, tokenSource)
+
+	return token, client, nil
+}
 
 func saveUserInfo(code string) (string, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -22,7 +48,7 @@ func saveUserInfo(code string) (string, error) {
 
 	secretKey := os.Getenv("JWT_SECRET_KEY")
 
-	token, client, err := auth.Authenticate(ctx, code)
+	token, client, err := authenticate(ctx, code)
 	if err != nil {
 		return "", err
 	}
