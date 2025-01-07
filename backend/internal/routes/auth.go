@@ -1,16 +1,14 @@
 package routes
 
 import (
-	"net/http"
-
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/authcontroller"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func Auth() *api.Router {
-	router := api.NewRouter()
+	r := api.NewRouter()
 
-	router.GET("/google/callback", http.HandlerFunc(GoogleAuthCallback))
+	r.GET("/google/callback", api.CustomHandlerFunc(GoogleAuthCallback))
 
-	return router
+	return r
 }

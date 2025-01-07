@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -16,7 +16,7 @@ func InitSchemaValidation(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
-				apierror.SendError(w, r, err)
+				api.SendError(w, r, err)
 				return
 			}
 
@@ -27,7 +27,7 @@ func InitSchemaValidation(
 
 			result, err := gojsonschema.Validate(schema, document)
 			if err != nil {
-				apierror.SendError(w, r, err)
+				api.SendError(w, r, err)
 				return
 			}
 
@@ -36,8 +36,8 @@ func InitSchemaValidation(
 				for _, desc := range result.Errors() {
 					errors = append(errors, desc.String())
 				}
-				apiErr := apierror.JSONSchemaInvalidation(errors)
-				apierror.SendError(w, r, apiErr)
+				apiErr := api.JSONSchemaInvalidation(errors)
+				api.SendError(w, r, apiErr)
 				return
 			}
 

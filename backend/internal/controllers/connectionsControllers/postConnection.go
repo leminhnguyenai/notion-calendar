@@ -9,31 +9,25 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/encryption"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func PostConnection(w http.ResponseWriter, r *http.Request) {
+func PostConnection(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	jwtToken, ok := r.Context().Value("jwtToken").(*validate.JWTToken)
 	if !ok || jwtToken == nil {
-		http.Error(
-			w,
-			"Can't find user JWT token",
-			http.StatusInternalServerError,
-		)
-		return
+		return api.JWTFailedToRetrieveError()
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	var requestBody struct {
@@ -42,8 +36,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	// TODO: Change this later when adding Google Calendar API operations
@@ -51,14 +44,12 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	connectionId, err := encryption.Encrypt(calendarId)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	connService := services.NewConnService(sql)
@@ -74,8 +65,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 		NextExecTime:        time.Now(),
 	})
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -85,4 +75,6 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(map[string]interface{}{
 		"message": "Connection added successfully",
 	})
+
+	return nil
 }

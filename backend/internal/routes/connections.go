@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,7 +18,7 @@ func Connections() *api.Router {
 
 	dirname := filepath.Dir(absPath)
 
-	router := api.NewRouter()
+	r := api.NewRouter()
 
 	validateUserInputConn := middlewares.InitSchemaValidation(
 		path.Join(dirname, ".././internal/schemas/userInputNotionConn.json"),
@@ -29,12 +28,12 @@ func Connections() *api.Router {
 		path.Join(dirname, ".././internal/schemas/deleteNotionConn.json"),
 	)
 
-	router.Use(middlewares.ValidateToken)
+	r.Use(middlewares.ValidateToken)
 
-	router.GET("/", http.HandlerFunc(GetConnections))
-	router.POST("/", validateUserInputConn(http.HandlerFunc(PostConnection)))
-	router.PATCH("/", validateUserInputConn(http.HandlerFunc(PatchConnection)))
-	router.DELETE("/", validateDeleteConn(http.HandlerFunc(DeleteConnection)))
+	r.GET("/", api.CustomHandlerFunc(GetConnections))
+	r.POST("/", validateUserInputConn(api.CustomHandlerFunc(PostConnection)))
+	r.PATCH("/", validateUserInputConn(api.CustomHandlerFunc(PatchConnection)))
+	r.DELETE("/", validateDeleteConn(api.CustomHandlerFunc(DeleteConnection)))
 
-	return router
+	return r
 }

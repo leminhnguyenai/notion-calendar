@@ -9,7 +9,6 @@ import (
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
@@ -109,7 +108,7 @@ func saveUserInfo(code string) (string, error) {
 	return tokenString, nil
 }
 
-func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
+func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	parsedUrl, err := url.Parse(
 		fmt.Sprintf(
 			"http://localhost%s%s",
@@ -118,8 +117,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	queryParams := parsedUrl.Query()
@@ -127,8 +125,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	token, err := saveUserInfo(code)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	// WARNING: Secure need to be set to true when in production
@@ -150,4 +147,6 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	) + "/dashboard"
 
 	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
+
+	return nil
 }

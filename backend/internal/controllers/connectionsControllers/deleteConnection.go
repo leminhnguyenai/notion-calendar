@@ -8,18 +8,17 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func DeleteConnection(w http.ResponseWriter, r *http.Request) {
+func DeleteConnection(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	var requestBody struct {
@@ -28,27 +27,22 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 	if requestBody.ConnectionId == "" {
-		apiErr := apierror.InvalidRequest("No connection id provided")
-		apierror.SendError(w, r, apiErr)
-		return
+		return api.InvalidRequest("No connection id provided")
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	connService := services.NewConnService(sql)
 
 	err = connService.DeleteConn(ctx, requestBody.ConnectionId)
 	if err != nil {
-		apierror.SendError(w, r, err)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -58,4 +52,6 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(map[string]interface{}{
 		"message": "Connection deleted successfully",
 	})
+
+	return nil
 }

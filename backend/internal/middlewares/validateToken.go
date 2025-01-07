@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token
@@ -18,7 +18,7 @@ func ValidateToken(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			apierror.SendError(w, r, apierror.JWTUnauthorizedError())
+			api.SendError(w, r, api.JWTUnauthorizedError())
 			return
 		}
 
@@ -26,13 +26,13 @@ func ValidateToken(next http.Handler) http.Handler {
 
 		claims, err := validate.VerifyToken(tokenString, secretKey)
 		if err != nil {
-			apierror.SendError(w, r, err)
+			api.SendError(w, r, err)
 			return
 		}
 
 		jwtToken, err := validate.ParseJWTToken(claims)
 		if err != nil {
-			apierror.SendError(w, r, err)
+			api.SendError(w, r, err)
 			return
 		}
 

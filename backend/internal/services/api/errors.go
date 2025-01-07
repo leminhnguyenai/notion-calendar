@@ -1,4 +1,4 @@
-package apierror
+package api
 
 import (
 	"encoding/json"
@@ -61,5 +61,12 @@ func JWTUnauthorizedError() *APIError {
 	return NewAPIError(
 		http.StatusUnauthorized,
 		fmt.Errorf("Failed to authorize JWT token"),
+	)
+}
+
+func JWTFailedToRetrieveError() *APIError {
+	return NewAPIError(
+		http.StatusInternalServerError,
+		fmt.Errorf("Failed to retrieve JWT token"),
 	)
 }
