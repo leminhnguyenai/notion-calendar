@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
@@ -18,7 +19,7 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -29,16 +30,18 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 	if requestBody.ConnectionId == "" {
-		http.Error(w, "No connection id provided", http.StatusBadRequest)
+		apiErr := apierror.InvalidRequest("No connection id provided")
+		apierror.SendError(w, r, apiErr)
+		return
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -50,7 +53,8 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) {
 		requestBody.Connection,
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

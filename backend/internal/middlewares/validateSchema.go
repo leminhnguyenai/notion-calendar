@@ -2,10 +2,10 @@ package middlewares
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -16,11 +16,7 @@ func InitSchemaValidation(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
-				http.Error(
-					w,
-					"err: "+err.Error(),
-					http.StatusInternalServerError,
-				)
+				apierror.SendError(w, r, err)
 				return
 			}
 
@@ -31,19 +27,17 @@ func InitSchemaValidation(
 
 			result, err := gojsonschema.Validate(schema, document)
 			if err != nil {
-				http.Error(
-					w,
-					"err: "+err.Error(),
-					http.StatusInternalServerError,
-				)
+				apierror.SendError(w, r, err)
 				return
 			}
 
 			if !result.Valid() {
+				errors := []string{}
 				for _, desc := range result.Errors() {
-					fmt.Printf("- %s\n", desc)
+					errors = append(errors, desc.String())
 				}
-				http.Error(w, "Invalid JSON", http.StatusUnauthorized)
+				apiErr := apierror.JSONSchemaInvalidation(errors)
+				apierror.SendError(w, r, apiErr)
 				return
 			}
 

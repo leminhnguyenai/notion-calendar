@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 )
 
 func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
@@ -125,7 +127,7 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -134,7 +136,7 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	token, err := getNotionToken(code)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 

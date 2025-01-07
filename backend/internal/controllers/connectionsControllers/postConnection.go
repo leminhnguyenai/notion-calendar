@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/encryption"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
@@ -31,7 +32,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -41,7 +42,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -50,13 +51,13 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 
 	connectionId, err := encryption.Encrypt(calendarId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -73,7 +74,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) {
 		NextExecTime:        time.Now(),
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 

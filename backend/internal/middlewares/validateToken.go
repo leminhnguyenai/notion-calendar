@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 )
 
@@ -17,7 +18,7 @@ func ValidateToken(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			apierror.SendError(w, r, apierror.JWTUnauthorizedError())
 			return
 		}
 
@@ -25,13 +26,13 @@ func ValidateToken(next http.Handler) http.Handler {
 
 		claims, err := validate.VerifyToken(tokenString, secretKey)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apierror.SendError(w, r, err)
 			return
 		}
 
 		jwtToken, err := validate.ParseJWTToken(claims)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apierror.SendError(w, r, err)
 			return
 		}
 

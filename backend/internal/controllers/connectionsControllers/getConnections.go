@@ -3,10 +3,12 @@ package connectionscontrollers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 )
@@ -17,17 +19,13 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 
 	jwtToken, ok := r.Context().Value("jwtToken").(*validate.JWTToken)
 	if !ok || jwtToken == nil {
-		http.Error(
-			w,
-			"Can't find user JWT token",
-			http.StatusInternalServerError,
-		)
+		apierror.SendError(w, r, fmt.Errorf("Can't find user JWT token"))
 		return
 	}
 
 	sql, err := db.InitDb()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -37,7 +35,7 @@ func GetConnections(w http.ResponseWriter, r *http.Request) {
 
 	notionConns, err := connService.GetConns(ctx, userId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 

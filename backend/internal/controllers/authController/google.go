@@ -9,6 +9,7 @@ import (
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/apierror"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
@@ -117,7 +118,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
@@ -126,7 +127,7 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	token, err := saveUserInfo(code)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apierror.SendError(w, r, err)
 		return
 	}
 
