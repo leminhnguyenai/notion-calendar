@@ -12,28 +12,25 @@ import (
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token
 func ValidateToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return api.CustomHandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
 		secretKey := os.Getenv("JWT_SECRET_KEY")
 
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			api.SendError(w, r, api.JWTUnauthorizedError())
-			return
+			return api.JWTUnauthorizedError()
 		}
 
 		tokenString := authHeader[len("Bearer "):]
 
 		claims, err := validate.VerifyToken(tokenString, secretKey)
 		if err != nil {
-			api.SendError(w, r, err)
-			return
+			return err
 		}
 
 		jwtToken, err := validate.ParseJWTToken(claims)
 		if err != nil {
-			api.SendError(w, r, err)
-			return
+			return err
 		}
 
 		ctx := context.WithValue(
@@ -42,6 +39,8 @@ func ValidateToken(next http.Handler) http.Handler {
 			jwtToken,
 		)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		defer next.ServeHTTP(w, r.WithContext(ctx))
+
+		return nil
 	})
 }

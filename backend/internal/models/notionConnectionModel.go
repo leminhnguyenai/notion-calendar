@@ -21,8 +21,8 @@ type UserInputNotionConn struct {
 
 type NotionConn struct {
 	UserInputNotionConn
-	ConnectionId string    `json:"connectionId"`
-	CalendarId   string    `json:"calendarId"`
-	UserId       string    `json:"userId"`
-	NextExecTime time.Time `json:"nextExecTime"`
+	ConnectionId string    `json:"connection_id"`
+	CalendarId   string    `json:"calendar_id"`
+	UserId       string    `json:"user_id"`
+	NextExecTime time.Time `json:"next_exec_time"`
 }
