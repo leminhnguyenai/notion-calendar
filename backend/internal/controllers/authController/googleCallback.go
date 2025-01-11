@@ -126,11 +126,10 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) error {
 
 	// WARNING: Secure need to be set to true when in production
 	cookie := http.Cookie{
-		Name:     "token",
+		Name:     "token_from_backend",
 		Value:    token,
 		Path:     "/",
 		Domain:   "localhost",
-		MaxAge:   120,
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,

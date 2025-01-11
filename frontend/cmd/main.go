@@ -6,10 +6,18 @@ import (
 	"os"
 	"path"
 
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/routes"
-	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services/api"
 	"github.com/lpernett/godotenv"
 )
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	absPath, err := os.Executable()
@@ -32,7 +40,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:    port,
-		Handler: mux,
+		Handler: loggingMiddleware(mux),
 	}
 
 	log.Printf("The server is on http://localhost%s\n", port)

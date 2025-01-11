@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services/api"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 )
 
 func serveCSS(w http.ResponseWriter, r *http.Request) {

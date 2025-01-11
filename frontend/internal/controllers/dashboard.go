@@ -2,46 +2,31 @@ package controllers
 
 import (
 	"html/template"
-	"log"
 	"net/http"
+
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 )
 
 type Data struct {
 	Token string
 }
 
-func Dashboard(w http.ResponseWriter, r *http.Request) {
+func Dashboard(w http.ResponseWriter, r *http.Request) error {
 	templ, err := template.ParseFiles("templates/dashboard.html")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	data := Data{}
 
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		log.Println(err.Error())
-		data.Token = ""
-		templ.Execute(w, data)
-		return
+	tokenString, ok := r.Context().Value("token_string").(string)
+	if !ok || tokenString == "" {
+		return api.JWTFailedToRetrieveError()
 	}
 
-	token := cookie.Value
-
-	newCookie := &http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   120,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	data.Token = token
-
-	http.SetCookie(w, newCookie)
+	data.Token = tokenString
 
 	templ.Execute(w, data)
+
+	return nil
 }
