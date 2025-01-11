@@ -1,4 +1,4 @@
-package controllers
+package dashboardcontroller
 
 import (
 	"html/template"

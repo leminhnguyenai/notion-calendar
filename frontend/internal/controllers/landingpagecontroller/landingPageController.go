@@ -1,4 +1,4 @@
-package controllers
+package landingpagecontroller
 
 import (
 	"html/template"
