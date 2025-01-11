@@ -1,7 +1,7 @@
 package routes
 
 import (
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/authcontroller"
+	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controller/authcontroller"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
 )
