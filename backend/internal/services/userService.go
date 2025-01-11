@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 type UserService struct {
@@ -21,7 +22,7 @@ func NewUserService(db *sql.DB) *UserService {
 func (u *UserService) GetUser(
 	ctx context.Context, userId string,
 ) (*models.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := u.db.Prepare(
@@ -59,7 +60,7 @@ func (u *UserService) GetUser(
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("Time out exceeded")
+			return nil, api.TimeoutError()
 		case res := <-resch:
 			var user models.User
 			user.NotionId.Valid = true
@@ -87,7 +88,7 @@ func (u *UserService) GetUser(
 func (u *UserService) CreateNewUser(
 	ctx context.Context, user models.User,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	userInputQ, err := u.db.Prepare(
@@ -130,7 +131,7 @@ func (u *UserService) CreateNewUser(
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("Time out exceeded")
+			return api.TimeoutError()
 		case err := <-errChan:
 			return err
 		}
@@ -142,7 +143,7 @@ func (u *UserService) SetReAuth(
 	userId string,
 	reauth bool,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := u.db.Prepare(`

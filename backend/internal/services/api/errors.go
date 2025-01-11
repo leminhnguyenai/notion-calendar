@@ -70,3 +70,10 @@ func JWTFailedToRetrieveError() *APIError {
 		fmt.Errorf("Failed to retrieve JWT token"),
 	)
 }
+
+func TimeoutError() *APIError {
+	return NewAPIError(
+		http.StatusGatewayTimeout,
+		fmt.Errorf("Timeout exceeded"),
+	)
+}

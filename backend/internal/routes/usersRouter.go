@@ -14,9 +14,7 @@ func UsersRouter() *api.Router {
 	router.GET("/google/login", http.HandlerFunc(GoogleLogin))
 	router.GET(
 		"/notion/login",
-		middlewares.ValidateToken(
-			http.HandlerFunc(NotionLogin),
-		),
+		middlewares.ValidateToken(http.HandlerFunc(NotionLogin)),
 	)
 
 	return router

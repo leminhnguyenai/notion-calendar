@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func checkOptionalField(
@@ -46,7 +46,7 @@ func (c *ConnService) GetConns(
 	ctx context.Context,
 	userId string,
 ) ([]models.NotionConn, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -139,7 +139,7 @@ func (c *ConnService) GetConns(
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("Time out exceeded")
+			return nil, api.TimeoutError()
 		case res := <-resch:
 			if res.err != nil {
 				return nil, res.err
@@ -153,7 +153,7 @@ func (c *ConnService) CreateNewConn(
 	ctx context.Context,
 	conn models.NotionConn,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -230,7 +230,7 @@ func (c *ConnService) CreateNewConn(
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("Time out exceeded")
+			return api.TimeoutError()
 		case err := <-errChan:
 			if err != nil {
 				return err
@@ -246,7 +246,7 @@ func (c *ConnService) UpdateConn(
 	connectionId string,
 	conn models.UserInputNotionConn,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -319,7 +319,7 @@ func (c *ConnService) UpdateConn(
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("Time out exceeded")
+			return api.TimeoutError()
 		case err := <-errChan:
 			if err != nil {
 				return err
@@ -334,7 +334,7 @@ func (c *ConnService) DeleteConn(
 	ctx context.Context,
 	connectionId string,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
 	defer cancel()
 
 	q, err := c.db.Prepare(
@@ -359,7 +359,7 @@ func (c *ConnService) DeleteConn(
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("Time out exceeded")
+			return api.TimeoutError()
 		case err := <-errChan:
 			if err != nil {
 				return err
