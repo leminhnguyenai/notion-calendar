@@ -1,4 +1,4 @@
-package connectionscontrollers
+package connectionsControllers
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
@@ -16,7 +16,7 @@ func GetConnections(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	jwtToken, ok := r.Context().Value("jwtToken").(*validate.JWTToken)
+	jwtToken, ok := r.Context().Value("jwtToken").(*cryptography.JWTToken)
 	if !ok || jwtToken == nil {
 		return api.JWTFailedToRetrieveError()
 	}

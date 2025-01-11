@@ -1,4 +1,4 @@
-package connectionscontrollers
+package connectionsControllers
 
 import (
 	"context"
@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/encryption"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
@@ -20,7 +19,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	jwtToken, ok := r.Context().Value("jwtToken").(*validate.JWTToken)
+	jwtToken, ok := r.Context().Value("jwtToken").(*cryptography.JWTToken)
 	if !ok || jwtToken == nil {
 		return api.JWTFailedToRetrieveError()
 	}
@@ -42,7 +41,7 @@ func PostConnection(w http.ResponseWriter, r *http.Request) error {
 	// TODO: Change this later when adding Google Calendar API operations
 	calendarId := "Skibidi"
 
-	connectionId, err := encryption.Encrypt(calendarId)
+	connectionId, err := cryptography.Encrypt(calendarId)
 	if err != nil {
 		return err
 	}

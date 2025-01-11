@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
@@ -23,12 +23,12 @@ func ValidateToken(next http.Handler) http.Handler {
 
 		tokenString := authHeader[len("Bearer "):]
 
-		claims, err := validate.VerifyToken(tokenString, secretKey)
+		claims, err := cryptography.VerifyToken(tokenString, secretKey)
 		if err != nil {
 			return err
 		}
 
-		jwtToken, err := validate.ParseJWTToken(claims)
+		jwtToken, err := cryptography.ParseJWTToken(claims)
 		if err != nil {
 			return err
 		}

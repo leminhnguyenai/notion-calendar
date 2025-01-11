@@ -1,4 +1,4 @@
-package authcontroller
+package authController
 
 import (
 	"bytes"
@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
@@ -118,7 +116,7 @@ func getNotionToken(code string) (string, error) {
 	return token, nil
 }
 
-func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
+func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	parsedUrl, err := url.Parse(
 		fmt.Sprintf(
 			"http://localhost%s%s",
@@ -127,8 +125,7 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		api.SendError(w, r, err)
-		return
+		return err
 	}
 
 	queryParams := parsedUrl.Query()
@@ -136,8 +133,7 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	token, err := getNotionToken(code)
 	if err != nil {
-		api.SendError(w, r, err)
-		return
+		return err
 	}
 
 	cookie := http.Cookie{
@@ -156,4 +152,6 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) {
 	log.Println(token)
 
 	w.WriteHeader(http.StatusOK)
+
+	return nil
 }

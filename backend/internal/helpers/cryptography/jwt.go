@@ -1,11 +1,10 @@
-package validate
+package cryptography
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/encryption"
 )
 
 type JWTToken struct {
@@ -20,7 +19,7 @@ type JWTToken struct {
 func CreateToken(
 	sub, googleRefreshToken, secretKey string,
 ) (string, error) {
-	jti, err := encryption.Encrypt(time.Now().String())
+	jti, err := Encrypt(time.Now().String())
 	if err != nil {
 		return "", err
 	}

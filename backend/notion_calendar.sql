@@ -1,7 +1,7 @@
 CREATE TABLE users (
     user_id VARCHAR(256) PRIMARY KEY,
     email VARCHAR(256) UNIQUE NOT NULL,
-    notion_access_token VARCHAR(512) UNIQUE,
+    notion_id VARCHAR(512) UNIQUE,
     role ENUM("user", "admin") NOT NULL DEFAULT "user",
     re_auth BOOLEAN NOT NULL
 );

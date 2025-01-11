@@ -1,4 +1,4 @@
-package authcontroller
+package authController
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/validate"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"golang.org/x/oauth2"
@@ -96,7 +96,7 @@ func saveUserInfo(code string) (string, error) {
 		return "", err
 	}
 
-	tokenString, err := validate.CreateToken(
+	tokenString, err := cryptography.CreateToken(
 		user.UserId,
 		googleRefreshToken,
 		secretKey,

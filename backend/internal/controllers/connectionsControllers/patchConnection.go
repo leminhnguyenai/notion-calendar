@@ -1,4 +1,4 @@
-package connectionscontrollers
+package connectionsControllers
 
 import (
 	"context"

@@ -28,7 +28,7 @@ func (u *UserService) GetUser(
 		`SELECT 
            user_id,
            email,
-           notion_access_token,
+           notion_id,
            role,
            re_auth 
 		FROM users WHERE user_id = ?`,
@@ -62,13 +62,13 @@ func (u *UserService) GetUser(
 			return nil, fmt.Errorf("Time out exceeded")
 		case res := <-resch:
 			var user models.User
-			user.NotionAccessToken.Valid = true
+			user.NotionId.Valid = true
 
 			for res.rows.Next() {
 				err := res.rows.Scan(
 					&user.UserId,
 					&user.Email,
-					&user.NotionAccessToken,
+					&user.NotionId,
 					&user.Role,
 					&user.ReAuth,
 				)
