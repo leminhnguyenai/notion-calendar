@@ -46,7 +46,7 @@ func (c *ConnService) GetConns(
 	ctx context.Context,
 	userId string,
 ) ([]models.NotionConn, error) {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -153,7 +153,7 @@ func (c *ConnService) CreateNewConn(
 	ctx context.Context,
 	conn models.NotionConn,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -246,7 +246,7 @@ func (c *ConnService) UpdateConn(
 	connectionId string,
 	conn models.UserInputNotionConn,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := c.db.Prepare(`
@@ -334,7 +334,7 @@ func (c *ConnService) DeleteConn(
 	ctx context.Context,
 	connectionId string,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := c.db.Prepare(

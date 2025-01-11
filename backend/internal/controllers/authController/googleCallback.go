@@ -13,7 +13,6 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	oauth2api "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
 )
@@ -22,13 +21,7 @@ func authenticate(
 	ctx context.Context,
 	code string,
 ) (*oauth2.Token, *http.Client, error) {
-	conf := &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
-		Scopes:       config.Scopes,
-		Endpoint:     google.Endpoint,
-	}
+	conf := config.Oauth2Config()
 
 	token, err := conf.Exchange(ctx, code)
 	if err != nil {
@@ -43,7 +36,10 @@ func authenticate(
 }
 
 func saveUserInfo(code string) (string, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		config.GoogleAPITimeout,
+	)
 	defer cancel()
 
 	secretKey := os.Getenv("JWT_SECRET_KEY")

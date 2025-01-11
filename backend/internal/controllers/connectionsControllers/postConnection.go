@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -54,7 +53,6 @@ func PostConnection(w http.ResponseWriter, r *http.Request) error {
 	connService := services.NewConnService(sql)
 
 	userId := jwtToken.Sub
-	log.Println(userId)
 
 	err = connService.CreateNewConn(ctx, models.NotionConn{
 		UserInputNotionConn: requestBody.Connection,

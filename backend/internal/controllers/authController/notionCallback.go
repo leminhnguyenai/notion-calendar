@@ -11,11 +11,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
+
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 )
 
 func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*2000)
+	ctx, cancel := context.WithTimeout(ctx, config.NotionAPITimeout)
 	defer cancel()
 
 	type Response struct {
@@ -63,7 +65,7 @@ func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
 
 	select {
 	case <-ctx.Done():
-		return "", fmt.Errorf("Time out exceeded")
+		return "", api.TimeoutError()
 	case resp := <-respch:
 		if resp.err != nil {
 			return "", resp.err

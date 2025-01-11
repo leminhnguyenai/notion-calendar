@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
@@ -22,7 +21,7 @@ func NewUserService(db *sql.DB) *UserService {
 func (u *UserService) GetUser(
 	ctx context.Context, userId string,
 ) (*models.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := u.db.Prepare(
@@ -88,7 +87,7 @@ func (u *UserService) GetUser(
 func (u *UserService) CreateNewUser(
 	ctx context.Context, user models.User,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	userInputQ, err := u.db.Prepare(
@@ -138,12 +137,12 @@ func (u *UserService) CreateNewUser(
 	}
 }
 
-func (u *UserService) SetReAuth(
+func (u *UserService) SetReauth(
 	ctx context.Context,
 	userId string,
 	reauth bool,
 ) error {
-	ctx, cancel := context.WithTimeout(ctx, config.DbWaitTime)
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
 	q, err := u.db.Prepare(`
@@ -172,7 +171,7 @@ func (u *UserService) SetReAuth(
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("Time limit exceed")
+			return api.TimeoutError()
 		case err := <-errChan:
 			return err
 		}
