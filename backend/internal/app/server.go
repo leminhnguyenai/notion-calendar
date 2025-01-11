@@ -21,9 +21,9 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func createServer() http.Handler {
 	mux := http.NewServeMux()
 
-	api.AddRouter(mux, "/auth", routes.Auth())
-	api.AddRouter(mux, "/users", routes.Users())
-	api.AddRouter(mux, "/connections", routes.Connections())
+	api.AddRouter(mux, "/auth", routes.AuthRouter())
+	api.AddRouter(mux, "/users", routes.UsersRouter())
+	api.AddRouter(mux, "/connections", routes.ConnectionsRouter())
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Notion-calendar is on")

@@ -8,7 +8,7 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func Users() *api.Router {
+func UsersRouter() *api.Router {
 	router := api.NewRouter()
 
 	router.GET("/google/login", http.HandlerFunc(GoogleLogin))

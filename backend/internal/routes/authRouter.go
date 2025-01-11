@@ -6,7 +6,7 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func Auth() *api.Router {
+func AuthRouter() *api.Router {
 	r := api.NewRouter()
 
 	r.GET("/google/callback", api.CustomHandlerFunc(GoogleAuthCallback))

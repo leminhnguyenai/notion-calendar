@@ -10,7 +10,7 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
-func Connections() *api.Router {
+func ConnectionsRouter() *api.Router {
 	absPath, err := os.Executable()
 	if err != nil {
 		panic(err)
