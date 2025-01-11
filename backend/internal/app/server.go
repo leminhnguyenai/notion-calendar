@@ -18,7 +18,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func createServer() http.Handler {
+func StartServer(errChan chan error) {
 	mux := http.NewServeMux()
 
 	api.AddRouter(mux, "/auth", routes.AuthRouter())
@@ -29,16 +29,10 @@ func createServer() http.Handler {
 		fmt.Fprintf(w, "Notion-calendar is on")
 	})
 
-	return loggingMiddleware(mux)
-}
-
-func StartServer(errChan chan error) {
-	srv := createServer()
-
 	port := os.Getenv("BACKEND_PORT")
 	httpServer := &http.Server{
 		Addr:    port,
-		Handler: srv,
+		Handler: loggingMiddleware(mux),
 	}
 
 	log.Printf("The server is on http://localhost%s\n", port)
