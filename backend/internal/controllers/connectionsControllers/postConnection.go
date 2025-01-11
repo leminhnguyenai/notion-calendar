@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func PostConnection(w http.ResponseWriter, r *http.Request) error {

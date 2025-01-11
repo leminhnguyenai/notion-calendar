@@ -7,8 +7,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func checkOptionalField(

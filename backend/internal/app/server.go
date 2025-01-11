@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/routes"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {

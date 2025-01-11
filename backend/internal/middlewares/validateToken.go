@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token

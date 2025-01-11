@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/xeipuuv/gojsonschema"
 )
 

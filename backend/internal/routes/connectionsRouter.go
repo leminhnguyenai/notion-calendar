@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/connectionscontrollers"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func ConnectionsRouter() *api.Router {

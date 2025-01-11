@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/services/api"
 )
 
 func DeleteConnection(w http.ResponseWriter, r *http.Request) error {
