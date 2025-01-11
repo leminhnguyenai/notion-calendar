@@ -72,8 +72,8 @@ func (c *ConnService) GetConns(
 	defer q.Close()
 
 	type Response struct {
-		result []models.NotionConn
-		err    error
+		results []models.NotionConn
+		err     error
 	}
 
 	resch := make(chan Response)
@@ -141,10 +141,7 @@ func (c *ConnService) GetConns(
 		case <-ctx.Done():
 			return nil, api.TimeoutError()
 		case res := <-resch:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.result, nil
+			return res.results, res.err
 		}
 	}
 }
@@ -232,11 +229,7 @@ func (c *ConnService) CreateNewConn(
 		case <-ctx.Done():
 			return api.TimeoutError()
 		case err := <-errChan:
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return err
 		}
 	}
 }
@@ -313,7 +306,11 @@ func (c *ConnService) UpdateConn(
 			connectionId,
 		)
 
-		errChan <- err
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
 	}()
 
 	for {
@@ -321,11 +318,7 @@ func (c *ConnService) UpdateConn(
 		case <-ctx.Done():
 			return api.TimeoutError()
 		case err := <-errChan:
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return err
 		}
 	}
 }
@@ -353,7 +346,11 @@ func (c *ConnService) DeleteConn(
 			connectionId,
 		)
 
-		errChan <- err
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
 	}()
 
 	for {
@@ -361,11 +358,7 @@ func (c *ConnService) DeleteConn(
 		case <-ctx.Done():
 			return api.TimeoutError()
 		case err := <-errChan:
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return err
 		}
 	}
 }
