@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controller/userscontroller"
+	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/userscontroller"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
 )

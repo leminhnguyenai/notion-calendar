@@ -5,7 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
-	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controller/connectionscontrollers"
+	. "github.com/leminhnguyenai/notion-calendar/backend/internal/controllers/connectionscontrollers"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/middlewares"
 )
