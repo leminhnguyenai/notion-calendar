@@ -22,7 +22,6 @@ func StartServer(errChan chan error) {
 	mux := http.NewServeMux()
 
 	api.AddRouter(mux, "/auth", routes.AuthRouter())
-	api.AddRouter(mux, "/users", routes.UsersRouter())
 	api.AddRouter(mux, "/connections", routes.ConnectionsRouter())
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
