@@ -29,3 +29,13 @@ func Oauth2Config() *oauth2.Config {
 		Endpoint: google.Endpoint,
 	}
 }
+
+func GetDbUrl() string {
+	return os.Getenv(
+		"DB_USERNAME",
+	) + ":" + os.Getenv(
+		"DB_PASSWORD",
+	) + "@/" + os.Getenv(
+		"DB_NAME",
+	) + "?parseTime=true"
+}

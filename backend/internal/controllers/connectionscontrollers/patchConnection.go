@@ -2,12 +2,13 @@ package connectionscontrollers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
@@ -35,12 +36,12 @@ func PatchConnection(w http.ResponseWriter, r *http.Request) error {
 		return api.InvalidRequest("No connection id provided")
 	}
 
-	sql, err := db.InitDb()
+	db, err := sql.Open("mysql", config.GetDbUrl())
 	if err != nil {
 		return err
 	}
 
-	connService := services.NewConnService(sql)
+	connService := services.NewConnService(db)
 
 	err = connService.UpdateConn(
 		ctx,

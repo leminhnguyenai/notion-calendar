@@ -2,13 +2,13 @@ package authcontroller
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/services"
@@ -71,14 +71,14 @@ func saveUserInfo(code string) (string, error) {
 
 	googleRefreshToken := token.RefreshToken
 
-	sql, err := db.InitDb()
+	db, err := sql.Open("mysql", config.GetDbUrl())
 	if err != nil {
 		return "", err
 	}
 
-	defer sql.Close()
+	defer db.Close()
 
-	userService := services.NewUserService(sql)
+	userService := services.NewUserService(db)
 
 	user := models.User{
 		UserId: token_id,

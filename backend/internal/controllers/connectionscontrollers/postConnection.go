@@ -2,12 +2,13 @@ package connectionscontrollers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/leminhnguyenai/notion-calendar/backend/internal/db"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/models"
@@ -45,12 +46,12 @@ func PostConnection(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sql, err := db.InitDb()
+	db, err := sql.Open("mysql", config.GetDbUrl())
 	if err != nil {
 		return err
 	}
 
-	connService := services.NewConnService(sql)
+	connService := services.NewConnService(db)
 
 	userId := jwtToken.Sub
 
