@@ -32,7 +32,7 @@ func CreateToken(
 		"iat":                  time.Now().Unix(),
 		"exp":                  time.Now().Add(time.Minute * 15).Unix(),
 		"google_refresh_token": googleRefreshToken,
-		"notion_refresh_token": notionAccessToken,
+		"notion_access_token":  notionAccessToken,
 	})
 
 	tokenString, err := token.SignedString([]byte(secretKey))
@@ -70,7 +70,7 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 
 	notion_access_token, ok := claims["notion_access_token"].(string)
 	if !ok || notion_access_token == "" {
-		return nil, fmt.Errorf("Error parsing refresh token")
+		return nil, fmt.Errorf("Error parsing notion access token")
 	}
 
 	return &JWTToken{iss, sub, jti, iat, exp, google_refresh_token, notion_access_token}, nil

@@ -2,10 +2,13 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
+
+const DbTimeout = time.Millisecond * 500
 
 func Oauth2Config() *oauth2.Config {
 	return &oauth2.Config{
@@ -21,4 +24,14 @@ func Oauth2Config() *oauth2.Config {
 		},
 		Endpoint: google.Endpoint,
 	}
+}
+
+func GetDbUrl() string {
+	return os.Getenv(
+		"DB_USERNAME",
+	) + ":" + os.Getenv(
+		"DB_PASSWORD",
+	) + "@/" + os.Getenv(
+		"DB_NAME",
+	) + "?parseTime=true"
 }

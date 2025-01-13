@@ -11,14 +11,6 @@ import (
 	"github.com/lpernett/godotenv"
 )
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %s %s", r.Method, r.URL.Path)
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
 	absPath, err := os.Executable()
 	if err != nil {
@@ -40,7 +32,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:    port,
-		Handler: loggingMiddleware(mux),
+		Handler: mux,
 	}
 
 	log.Printf("The server is on http://localhost%s\n", port)

@@ -42,8 +42,6 @@ func saveUserInfo(code string) (string, error) {
 	)
 	defer cancel()
 
-	secretKey := os.Getenv("JWT_SECRET_KEY")
-
 	token, client, err := authenticate(ctx, code)
 	if err != nil {
 		return "", err
@@ -95,8 +93,8 @@ func saveUserInfo(code string) (string, error) {
 	tokenString, err := cryptography.CreateToken(
 		user.UserId,
 		googleRefreshToken,
-		"",
-		secretKey,
+		"not_specified",
+		os.Getenv("JWT_SECRET_KEY"),
 	)
 	if err != nil {
 		return "", err
