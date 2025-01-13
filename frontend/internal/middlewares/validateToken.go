@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -48,12 +49,10 @@ func saveCookie(w http.ResponseWriter, name string, maxAge int, value string) {
 func saveJWTToken(
 	w http.ResponseWriter,
 	r *http.Request,
-	backendCookie *http.Cookie,
+	backendTokenCookie *http.Cookie,
 ) error {
-	tokenString := backendCookie.Value
-
 	deleteCookie(w, "token_from_backend")
-	saveCookie(w, "token", 120, tokenString)
+	saveCookie(w, "token", 120, backendTokenCookie.Value)
 
 	http.Redirect(w, r, "/dashboard", http.StatusTemporaryRedirect)
 
@@ -63,15 +62,16 @@ func saveJWTToken(
 func updateJWTToken(
 	w http.ResponseWriter,
 	r *http.Request,
-	notionTokenCookie *http.Cookie,
+	notionAccessTokenCookie *http.Cookie,
 	claims jwt.MapClaims,
 ) error {
 	ctx, cancel := context.WithTimeout(context.Background(), config.DbTimeout)
 	defer cancel()
 
 	notionId := r.URL.Query().Get("notion-id")
-
-	notionAccessToken := notionTokenCookie.Value
+	if notionId == "" {
+		return fmt.Errorf("failed to retrieve user's notion id")
+	}
 
 	jwtToken, err := cryptography.ParseJWTToken(claims)
 	if err != nil {
@@ -92,7 +92,7 @@ func updateJWTToken(
 	updatedJWTTokenString, err := cryptography.CreateJWTToken(
 		jwtToken.Sub,
 		jwtToken.GoogleRefreshToken,
-		notionAccessToken,
+		notionAccessTokenCookie.Value,
 		os.Getenv("JWT_SECRET_KEY"),
 	)
 	if err != nil {
@@ -120,15 +120,13 @@ func ValidateToken(next http.Handler) http.Handler {
 				return nil
 			}
 
-			cookie, err := r.Cookie("token")
+			tokenCookie, err := r.Cookie("token")
 			if err != nil {
 				return api.JWTFailedToRetrieveError()
 			}
 
-			tokenString := cookie.Value
-
 			claims, err := cryptography.VerifyJWTToken(
-				tokenString,
+				tokenCookie.Value,
 				os.Getenv("JWT_SECRET_KEY"),
 			)
 			if err != nil {
@@ -148,7 +146,7 @@ func ValidateToken(next http.Handler) http.Handler {
 			ctx := context.WithValue(
 				r.Context(),
 				"token_string",
-				tokenString,
+				tokenCookie.Value,
 			)
 
 			defer next.ServeHTTP(w, r.WithContext(ctx))
