@@ -95,6 +95,7 @@ func saveUserInfo(code string) (string, error) {
 	tokenString, err := cryptography.CreateToken(
 		user.UserId,
 		googleRefreshToken,
+		"",
 		secretKey,
 	)
 	if err != nil {

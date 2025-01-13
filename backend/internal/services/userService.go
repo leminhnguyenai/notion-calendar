@@ -177,3 +177,44 @@ func (u *UserService) SetReauth(
 		}
 	}
 }
+
+func (u *UserService) SaveUserNotionId(
+	ctx context.Context,
+	userId string,
+	notionId string,
+) error {
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
+	defer cancel()
+
+	q, err := u.db.Prepare(`
+	    UPDATE users SET (
+	        notion_id = ?
+	    )
+	    WHERE user_id = ?
+	`)
+	if err != nil {
+		return err
+	}
+
+	defer q.Close()
+
+	errChan := make(chan error)
+
+	go func() {
+		_, err := q.Exec(notionId, userId)
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return api.TimeoutError()
+		case err := <-errChan:
+			return err
+		}
+	}
+}
