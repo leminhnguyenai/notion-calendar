@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 
+	"github.com/dstotijn/go-notion"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
 )
@@ -110,15 +110,18 @@ func getNotionToken(code string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Basic "+encodedCred)
 
-	token, err := sendRequestHelper(ctx, req)
+	notionAccessToken, err := sendRequestHelper(ctx, req)
 	if err != nil {
 		return "", err
 	}
 
-	return token, nil
+	return notionAccessToken, nil
 }
 
 func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	parsedUrl, err := url.Parse(
 		fmt.Sprintf(
 			"http://localhost%s%s",
@@ -133,17 +136,23 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	queryParams := parsedUrl.Query()
 	code := queryParams.Get("code")
 
-	token, err := getNotionToken(code)
+	notionAccessToken, err := getNotionToken(code)
+	if err != nil {
+		return err
+	}
+
+	notionClient := notion.NewClient(notionAccessToken)
+
+	notionUser, err := notionClient.FindCurrentUser(ctx)
 	if err != nil {
 		return err
 	}
 
 	cookie := http.Cookie{
-		Name:     "token",
-		Value:    token,
+		Name:     "notion_access_token",
+		Value:    notionAccessToken,
 		Path:     "/",
 		Domain:   "localhost",
-		MaxAge:   120,
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
@@ -151,9 +160,11 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	http.SetCookie(w, &cookie)
 	// NOTE: The token will be sent back to the user which will be sent along with user's JWT token to save in the db
 
-	log.Println(token)
+	dashboardURL := "http://localhost" + os.Getenv(
+		"FRONTEND_PORT",
+	) + "/dashboard?notion-id=" + notionUser.ID
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
 
 	return nil
 }

@@ -2,7 +2,11 @@ package middlewares
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
@@ -10,7 +14,7 @@ import (
 )
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token
-func saveTokenFromBackend(
+func saveJWTToken(
 	w http.ResponseWriter,
 	r *http.Request,
 	backendCookie *http.Cookie,
@@ -47,12 +51,54 @@ func saveTokenFromBackend(
 	return nil
 }
 
+func updateJWTToken(
+	w http.ResponseWriter,
+	r *http.Request,
+	notionTokenCookie *http.Cookie,
+) error {
+	parsedUrl, err := url.Parse(
+		fmt.Sprintf(
+			"http://localhost%s%s",
+			os.Getenv("FRONTEND_PORT"),
+			r.URL.String(),
+		),
+	)
+	if err != nil {
+		return err
+	}
+
+	queryParams := parsedUrl.Query()
+	notionId := queryParams.Get("notion-id")
+
+	notionAccessToken := notionTokenCookie.Value
+
+	log.Printf("notion id: %s\n", notionId)
+	log.Printf("notion access token: %s\n", notionAccessToken)
+
+	deletedCookie := &http.Cookie{
+		Name:     "notion_access_token",
+		Value:    "",
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, deletedCookie)
+
+	http.Redirect(w, r, "/dashboard", http.StatusFound)
+
+	return nil
+}
+
 func ValidateToken(next http.Handler) http.Handler {
 	return api.CustomHandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) error {
-			backendCookie, _ := r.Cookie("token_from_backend")
-			if backendCookie != nil {
-				err := saveTokenFromBackend(w, r, backendCookie)
+			backendCookie, err := r.Cookie("token_from_backend")
+			if !errors.Is(err, http.ErrNoCookie) {
+				err = saveJWTToken(w, r, backendCookie)
 				if err != nil {
 					return err
 				}
@@ -60,7 +106,15 @@ func ValidateToken(next http.Handler) http.Handler {
 				return nil
 			}
 
-			secretKey := os.Getenv("JWT_SECRET_KEY")
+			notionTokenCookie, err := r.Cookie("notion_access_token")
+			if !errors.Is(err, http.ErrNoCookie) {
+				err = updateJWTToken(w, r, notionTokenCookie)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
 
 			cookie, err := r.Cookie("token")
 			if err != nil {
@@ -69,7 +123,10 @@ func ValidateToken(next http.Handler) http.Handler {
 
 			tokenString := cookie.Value
 
-			_, err = cryptography.VerifyToken(tokenString, secretKey)
+			_, err = cryptography.VerifyToken(
+				tokenString,
+				os.Getenv("JWT_SECRET_KEY"),
+			)
 			if err != nil {
 				return err
 			}
