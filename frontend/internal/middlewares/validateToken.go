@@ -59,7 +59,7 @@ func saveJWTToken(
 	return nil
 }
 
-func updateJWTToken(
+func addNotionTokenToJWTToken(
 	w http.ResponseWriter,
 	r *http.Request,
 	notionAccessTokenCookie *http.Cookie,
@@ -135,7 +135,7 @@ func ValidateToken(next http.Handler) http.Handler {
 
 			notionTokenCookie, err := r.Cookie("notion_access_token")
 			if !errors.Is(err, http.ErrNoCookie) {
-				err = updateJWTToken(w, r, notionTokenCookie, claims)
+				err = addNotionTokenToJWTToken(w, r, notionTokenCookie, claims)
 				if err != nil {
 					return err
 				}
@@ -143,10 +143,15 @@ func ValidateToken(next http.Handler) http.Handler {
 				return nil
 			}
 
+			jwtToken, err := cryptography.ParseJWTToken(claims)
+			if err != nil {
+				return err
+			}
+
 			ctx := context.WithValue(
 				r.Context(),
-				"token_string",
-				tokenCookie.Value,
+				"token",
+				jwtToken,
 			)
 
 			defer next.ServeHTTP(w, r.WithContext(ctx))

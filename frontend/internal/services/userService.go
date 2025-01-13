@@ -214,3 +214,41 @@ func (u *UserService) SaveUserNotionId(
 		}
 	}
 }
+
+func (u *UserService) RemoveUserNotionId(
+	ctx context.Context,
+	userId string,
+) error {
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
+	defer cancel()
+
+	q, err := u.db.Prepare(`
+	    UPDATE users SET notion_id = NULL
+	    WHERE user_id = ?
+	`)
+	if err != nil {
+		return err
+	}
+
+	defer q.Close()
+
+	errChan := make(chan error)
+
+	go func() {
+		_, err := q.Exec(userId)
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return api.TimeoutError()
+		case err := <-errChan:
+			return err
+		}
+	}
+}

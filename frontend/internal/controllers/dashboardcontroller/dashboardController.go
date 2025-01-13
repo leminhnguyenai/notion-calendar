@@ -5,28 +5,31 @@ import (
 	"net/http"
 
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/cryptography"
 )
 
 type Data struct {
-	Token string
+	IsNotionConnected bool
 }
 
 func Dashboard(w http.ResponseWriter, r *http.Request) error {
-	templ, err := template.ParseFiles("templates/dashboard.html")
+	templ, err := template.ParseGlob("templates/dashboard.html")
 	if err != nil {
 		return err
 	}
 
-	data := Data{}
+	data := Data{IsNotionConnected: false}
 
-	tokenString, ok := r.Context().Value("token_string").(string)
-	if !ok || tokenString == "" {
+	jwtToken, ok := r.Context().Value("token").(*cryptography.JWTToken)
+	if !ok || jwtToken == nil {
 		return api.JWTFailedToRetrieveError()
 	}
 
-	data.Token = tokenString
+	if jwtToken.NotionAccessToken != "" {
+		data.IsNotionConnected = true
+	}
 
-	templ.Execute(w, data)
+	templ.ExecuteTemplate(w, "index", data)
 
 	return nil
 }

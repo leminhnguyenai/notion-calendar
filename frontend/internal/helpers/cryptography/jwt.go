@@ -69,14 +69,25 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 	}
 
 	notion_access_token, ok := claims["notion_access_token"].(string)
-	if !ok || notion_access_token == "" {
+	if !ok {
 		return nil, fmt.Errorf("Error parsing notion access token")
 	}
 
-	return &JWTToken{iss, sub, jti, iat, exp, google_refresh_token, notion_access_token}, nil
+	return &JWTToken{
+		iss,
+		sub,
+		jti,
+		iat,
+		exp,
+		google_refresh_token,
+		notion_access_token,
+	}, nil
 }
 
-func VerifyJWTToken(tokenString string, secretKey string) (jwt.MapClaims, error) {
+func VerifyJWTToken(
+	tokenString string,
+	secretKey string,
+) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(
 		tokenString,
 		func(token *jwt.Token) (interface{}, error) {

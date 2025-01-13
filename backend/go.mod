@@ -3,6 +3,7 @@ module github.com/leminhnguyenai/notion-calendar/backend
 go 1.23.2
 
 require (
+	github.com/dstotijn/go-notion v0.11.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
@@ -16,7 +17,6 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.6 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/dstotijn/go-notion v0.11.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

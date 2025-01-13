@@ -1,3 +1,4 @@
+{{ block "index" .}}
 <!doctype html>
 <html lang="en">
     <head>
@@ -16,14 +17,32 @@
         <nav
             class="flex w-full bg-[#242424] outline outline-1 outline-[#F0EAD6]/50 text-[#F0EAD6] p-4 justify-between items-center text-sm"
         >
-            <p>Notion calendar</p>
-            <a
-                href="/login/notion"
-                class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out"
-            >
-                Connect to Notion
-            </a>
+            <p>Dashboard</p>
+            {{ if .IsNotionConnected }}
+                {{template "logout-button" . }}
+            {{ else }}
+                <a
+                    href="users/login/notion"
+                    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer"
+                >
+                    Connect to Notion
+                </a>
+            {{ end }}
         </nav>
     </body>
     <script src="/dashboard/script"></script>
 </html>
+{{ end }}
+
+
+
+{{block "logout-button" . }}
+                <a
+                    hx-post="users/logout/notion"
+                    hx-swap="outerHTML"
+                    hx-target="this"
+                    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer"
+                >
+                    Remove Notion connection
+                </a>
+{{ end }}

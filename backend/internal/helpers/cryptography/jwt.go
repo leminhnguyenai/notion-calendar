@@ -69,7 +69,7 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 	}
 
 	notion_access_token, ok := claims["notion_access_token"].(string)
-	if !ok || notion_access_token == "" {
+	if !ok {
 		return nil, fmt.Errorf("Error parsing notion access token")
 	}
 
