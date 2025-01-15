@@ -3,158 +3,80 @@ package middlewares
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/cryptography"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services"
 )
-
-func deleteCookie(w http.ResponseWriter, cookieName string) {
-	deletedCookie := &http.Cookie{
-		Name:     cookieName,
-		Value:    "",
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, deletedCookie)
-}
-
-func saveCookie(w http.ResponseWriter, name string, maxAge int, value string) {
-	cookie := &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   maxAge,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, cookie)
-}
-
-// TODO: Add mechanism for checking and blacklisting expired JWT token
-func saveJWTToken(
-	w http.ResponseWriter,
-	r *http.Request,
-	backendTokenCookie *http.Cookie,
-) error {
-	deleteCookie(w, "token_from_backend")
-	saveCookie(w, "token", 120, backendTokenCookie.Value)
-
-	http.Redirect(w, r, "/dashboard", http.StatusTemporaryRedirect)
-
-	return nil
-}
-
-func addNotionTokenToJWTToken(
-	w http.ResponseWriter,
-	r *http.Request,
-	notionAccessTokenCookie *http.Cookie,
-	claims jwt.MapClaims,
-) error {
-	ctx, cancel := context.WithTimeout(context.Background(), config.DbTimeout)
-	defer cancel()
-
-	notionId := r.URL.Query().Get("notion-id")
-	if notionId == "" {
-		return fmt.Errorf("failed to retrieve user's notion id")
-	}
-
-	jwtToken, err := cryptography.ParseJWTToken(claims)
-	if err != nil {
-		return err
-	}
-
-	db, err := sql.Open("mysql", config.GetDbUrl())
-	if err != nil {
-		return err
-	}
-
-	err = services.NewUserService(db).
-		SaveUserNotionId(ctx, jwtToken.Sub, notionId)
-	if err != nil {
-		return err
-	}
-
-	updatedJWTTokenString, err := cryptography.CreateJWTToken(
-		jwtToken.Sub,
-		jwtToken.GoogleRefreshToken,
-		notionAccessTokenCookie.Value,
-		os.Getenv("JWT_SECRET_KEY"),
-	)
-	if err != nil {
-		return err
-	}
-
-	deleteCookie(w, "notion_access_token")
-	saveCookie(w, "token", 120, updatedJWTTokenString)
-
-	http.Redirect(w, r, "/dashboard", http.StatusFound)
-
-	return nil
-}
 
 func ValidateToken(next http.Handler) http.Handler {
 	return api.CustomHandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) error {
-			backendCookie, err := r.Cookie("token_from_backend")
-			if !errors.Is(err, http.ErrNoCookie) {
-				err = saveJWTToken(w, r, backendCookie)
-				if err != nil {
-					return err
-				}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-				return nil
-			}
+			values := &models.Values{}
 
-			tokenCookie, err := r.Cookie("token")
+			jwtTokenStringCookie, err := r.Cookie("token")
 			if err != nil {
 				return api.JWTFailedToRetrieveError()
 			}
 
 			claims, err := cryptography.VerifyJWTToken(
-				tokenCookie.Value,
+				jwtTokenStringCookie.Value,
 				os.Getenv("JWT_SECRET_KEY"),
 			)
 			if err != nil {
 				return err
 			}
 
-			notionTokenCookie, err := r.Cookie("notion_access_token")
-			if !errors.Is(err, http.ErrNoCookie) {
-				err = addNotionTokenToJWTToken(w, r, notionTokenCookie, claims)
-				if err != nil {
-					return err
-				}
-
-				return nil
-			}
-
-			jwtToken, err := cryptography.ParseJWTToken(claims)
+			values.JWTToken, err = cryptography.ParseJWTToken(claims)
 			if err != nil {
 				return err
 			}
 
-			ctx := context.WithValue(
-				r.Context(),
-				"token",
-				jwtToken,
-			)
+			// These 2 cookies should be sent together
+			// If only either of them is delivered then it is invalid and will be ignored
+			notionTokenCookie, err := r.Cookie("notion_access_token")
 
-			defer next.ServeHTTP(w, r.WithContext(ctx))
+			notionIdCookie, err := r.Cookie("notion_id")
+
+			if notionIdCookie != nil && notionTokenCookie != nil {
+				db, err := sql.Open("mysql", config.GetDbUrl())
+				if err != nil {
+					return err
+				}
+
+				user, err := services.NewUserService(db).GetUser(
+					ctx,
+					values.JWTToken.Sub,
+				)
+
+				if user.NotionId.Valid &&
+					user.NotionId.String != notionIdCookie.Value {
+					values.Message = "Notion account doesn't match the registered one, remove the existing one to add another"
+				} else {
+					decryptedNotionAccessToken, err := cryptography.Decrypt(
+						notionTokenCookie.Value,
+					)
+					if err != nil {
+						return err
+					}
+
+					values.JWTToken.NotionAccessToken = decryptedNotionAccessToken
+					values.JWTToken.NotionId = notionIdCookie.Value
+				}
+			}
+
+			defer next.ServeHTTP(w, r.WithContext(context.WithValue(
+				r.Context(),
+				"values",
+				values,
+			)))
 
 			return nil
 		},

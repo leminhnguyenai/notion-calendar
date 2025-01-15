@@ -10,6 +10,8 @@ import (
 
 const DbTimeout = time.Millisecond * 500
 
+const CookieMaxAge = 300
+
 func Oauth2Config() *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),

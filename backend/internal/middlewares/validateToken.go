@@ -12,35 +12,36 @@ import (
 
 // TODO: Add mechanism for checking and blacklisting expired JWT token
 func ValidateToken(next http.Handler) http.Handler {
-	return api.CustomHandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
-		secretKey := os.Getenv("JWT_SECRET_KEY")
+	return api.CustomHandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) error {
+			if !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+				return api.JWTUnauthorizedError()
+			}
 
-		authHeader := r.Header.Get("Authorization")
+			tokenString := r.Header.Get("Authorization")[len("Bearer "):]
 
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			return api.JWTUnauthorizedError()
-		}
+			claims, err := cryptography.VerifyJWTToken(
+				tokenString,
+				os.Getenv("JWT_SECRET_KEY"),
+			)
+			if err != nil {
+				return err
+			}
 
-		tokenString := authHeader[len("Bearer "):]
+			jwtToken, err := cryptography.ParseJWTToken(claims)
+			if err != nil {
+				return err
+			}
 
-		claims, err := cryptography.VerifyToken(tokenString, secretKey)
-		if err != nil {
-			return err
-		}
+			ctx := context.WithValue(
+				r.Context(),
+				"jwtToken",
+				jwtToken,
+			)
 
-		jwtToken, err := cryptography.ParseJWTToken(claims)
-		if err != nil {
-			return err
-		}
+			defer next.ServeHTTP(w, r.WithContext(ctx))
 
-		ctx := context.WithValue(
-			r.Context(),
-			"jwtToken",
-			jwtToken,
-		)
-
-		defer next.ServeHTTP(w, r.WithContext(ctx))
-
-		return nil
-	})
+			return nil
+		},
+	)
 }

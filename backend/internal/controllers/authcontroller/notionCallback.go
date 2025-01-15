@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/dstotijn/go-notion"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/api"
+	"github.com/leminhnguyenai/notion-calendar/backend/internal/helpers/cryptography"
 )
 
 func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
@@ -41,7 +41,7 @@ func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
 			respch <- Response{"", err}
 		}
 
-		type NotionOauthResponse struct {
+		notionOauthRes := struct {
 			AccessToken          string `json:"access_token"`
 			BotId                string `json:"bot_id"`
 			DuplicatedTemplateId string `json:"duplicated_template_id"`
@@ -51,12 +51,9 @@ func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
 			WorkspaceIcon string `json:"workspace_icon"`
 			WorkspaceId   string `json:"workspace_id"`
 			WorkspaceName string `json:"workspace_name"`
-		}
+		}{}
 
-		var notionOauthRes NotionOauthResponse
-
-		err = json.Unmarshal(body, &notionOauthRes)
-		if err != nil {
+		if err = json.Unmarshal(body, &notionOauthRes); err != nil {
 			respch <- Response{"", err}
 		}
 
@@ -67,11 +64,7 @@ func sendRequestHelper(ctx context.Context, req *http.Request) (string, error) {
 	case <-ctx.Done():
 		return "", api.TimeoutError()
 	case resp := <-respch:
-		if resp.err != nil {
-			return "", resp.err
-		}
-
-		return resp.token, nil
+		return resp.token, resp.err
 	}
 }
 
@@ -94,8 +87,6 @@ func getNotionToken(code string) (string, error) {
 		return "", err
 	}
 
-	jsonStr := []byte(jsonData)
-
 	encodedCred := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(
 		"%s:%s",
 		os.Getenv("NOTION_OAUTH_CLIENT_ID"),
@@ -105,7 +96,7 @@ func getNotionToken(code string) (string, error) {
 	req, err := http.NewRequest(
 		"POST",
 		"https://api.notion.com/v1/oauth/token",
-		bytes.NewBuffer(jsonStr),
+		bytes.NewBuffer([]byte(jsonData)),
 	)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Basic "+encodedCred)
@@ -122,47 +113,47 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	parsedUrl, err := url.Parse(
-		fmt.Sprintf(
-			"http://localhost%s%s",
-			os.Getenv("BACKEND_PORT"),
-			r.URL.String(),
-		),
-	)
-	if err != nil {
-		return err
-	}
-
-	queryParams := parsedUrl.Query()
-	code := queryParams.Get("code")
+	code := r.URL.Query().Get("code")
 
 	notionAccessToken, err := getNotionToken(code)
 	if err != nil {
 		return err
 	}
 
-	notionClient := notion.NewClient(notionAccessToken)
-
-	notionUser, err := notionClient.FindCurrentUser(ctx)
+	notionUser, err := notion.NewClient(notionAccessToken).FindCurrentUser(ctx)
 	if err != nil {
 		return err
 	}
 
-	cookie := http.Cookie{
+	encryptedNotionAcessToken, err := cryptography.Encrypt(notionAccessToken)
+	if err != nil {
+		return err
+	}
+
+	http.SetCookie(w, &http.Cookie{
 		Name:     "notion_access_token",
-		Value:    notionAccessToken,
+		Value:    encryptedNotionAcessToken,
 		Path:     "/",
 		Domain:   "localhost",
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
-	}
-	http.SetCookie(w, &cookie)
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "notion_id",
+		Value:    notionUser.ID,
+		Path:     "/",
+		Domain:   "localhost",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
 	// NOTE: The token will be sent back to the user which will be sent along with user's JWT token to save in the db
 
 	dashboardURL := "http://localhost" + os.Getenv(
 		"FRONTEND_PORT",
-	) + "/dashboard?notion-id=" + notionUser.ID
+	) + "/dashboard"
 
 	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
 

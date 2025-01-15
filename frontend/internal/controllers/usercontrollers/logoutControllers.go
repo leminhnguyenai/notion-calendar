@@ -9,49 +9,40 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/config"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/cryptography"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/models"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services"
 )
 
 func NotionLogout(w http.ResponseWriter, r *http.Request) error {
-	jwtToken, ok := r.Context().Value("token").(*cryptography.JWTToken)
-	if !ok || jwtToken == nil {
-		return api.JWTFailedToRetrieveError()
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	values, ok := r.Context().Value("values").(*models.Values)
+	if !ok || values == nil {
+		return api.JWTFailedToRetrieveError()
+	}
 
 	db, err := sql.Open("mysql", config.GetDbUrl())
 	if err != nil {
 		return err
 	}
 
-	err = services.NewUserService(db).RemoveUserNotionId(ctx, jwtToken.Sub)
+	err = services.NewUserService(db).
+		RemoveUserNotionId(ctx, values.JWTToken.Sub)
 	if err != nil {
 		return err
 	}
 
 	newJWTTokenString, err := cryptography.CreateJWTToken(
-		jwtToken.Sub,
-		jwtToken.GoogleRefreshToken,
+		values.JWTToken.Sub,
+		values.JWTToken.GoogleRefreshToken,
+		"",
 		"",
 		os.Getenv("JWT_SECRET_KEY"),
 	)
 
-	newCookie := &http.Cookie{
-		Name:     "token",
-		Value:    newJWTTokenString,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   120,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
+	api.ManageCookies(w, r, newJWTTokenString)
 
-	http.SetCookie(w, newCookie)
-
-	// http.Redirect(w, r, "/dashboard", http.StatusFound)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`
                 <a

@@ -77,3 +77,17 @@ func TimeoutError() *APIError {
 		fmt.Errorf("Timeout exceeded"),
 	)
 }
+
+func NoUserFoundDbError() *APIError {
+	return NewAPIError(
+		http.StatusBadRequest,
+		fmt.Errorf("Can't find the user according to the credentials"),
+	)
+}
+
+func NotionIdMismatchError() *APIError {
+	return NewAPIError(
+		http.StatusBadRequest,
+		fmt.Errorf("The notion account doesn't match "),
+	)
+}

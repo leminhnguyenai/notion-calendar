@@ -3,9 +3,7 @@ package authcontroller
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/backend/internal/config"
@@ -17,24 +15,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-func authenticate(
-	ctx context.Context,
-	code string,
-) (*oauth2.Token, *http.Client, error) {
-	conf := config.Oauth2Config()
-
-	token, err := conf.Exchange(ctx, code)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	tokenSource := conf.TokenSource(ctx, token)
-
-	client := oauth2.NewClient(ctx, tokenSource)
-
-	return token, client, nil
-}
-
 func saveUserInfo(code string) (string, error) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
@@ -42,14 +22,18 @@ func saveUserInfo(code string) (string, error) {
 	)
 	defer cancel()
 
-	token, client, err := authenticate(ctx, code)
+	conf := config.Oauth2Config()
+
+	token, err := conf.Exchange(ctx, code)
 	if err != nil {
 		return "", err
 	}
 
+	tokenSource := conf.TokenSource(ctx, token)
+
 	oauth2Service, err := oauth2api.NewService(
 		ctx,
-		option.WithHTTPClient(client),
+		option.WithHTTPClient(oauth2.NewClient(ctx, tokenSource)),
 	)
 	if err != nil {
 		return "", err
@@ -60,14 +44,10 @@ func saveUserInfo(code string) (string, error) {
 		return "", err
 	}
 
-	token_id := userInfo.Id
-
 	email := userInfo.Email
 	if email == "" {
 		return "", err
 	}
-
-	googleRefreshToken := token.RefreshToken
 
 	db, err := sql.Open("mysql", config.GetDbUrl())
 	if err != nil {
@@ -76,23 +56,21 @@ func saveUserInfo(code string) (string, error) {
 
 	defer db.Close()
 
-	userService := services.NewUserService(db)
-
 	user := models.User{
-		UserId: token_id,
+		UserId: userInfo.Id,
 		Email:  email,
 		Role:   "user",
 		ReAuth: false,
 	}
 
-	err = userService.CreateNewUser(ctx, user)
-	if err != nil {
+	if err = services.NewUserService(db).CreateNewUser(ctx, user); err != nil {
 		return "", err
 	}
 
-	tokenString, err := cryptography.CreateToken(
+	tokenString, err := cryptography.CreateJWTToken(
 		user.UserId,
-		googleRefreshToken,
+		token.RefreshToken,
+		"",
 		"",
 		os.Getenv("JWT_SECRET_KEY"),
 	)
@@ -104,19 +82,7 @@ func saveUserInfo(code string) (string, error) {
 }
 
 func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	parsedUrl, err := url.Parse(
-		fmt.Sprintf(
-			"http://localhost%s%s",
-			os.Getenv("BACKEND_PORT"),
-			r.URL.String(),
-		),
-	)
-	if err != nil {
-		return err
-	}
-
-	queryParams := parsedUrl.Query()
-	code := queryParams.Get("code")
+	code := r.URL.Query().Get("code")
 
 	token, err := saveUserInfo(code)
 	if err != nil {
@@ -124,23 +90,21 @@ func GoogleAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// WARNING: Secure need to be set to true when in production
-	cookie := http.Cookie{
-		Name:     "token_from_backend",
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
 		Value:    token,
 		Path:     "/",
 		Domain:   "localhost",
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, &cookie)
+	})
 
 	dashboardURL := "http://localhost" + os.Getenv(
 		"FRONTEND_PORT",
 	) + "/dashboard"
 
-	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, dashboardURL, http.StatusFound)
 
 	return nil
 }

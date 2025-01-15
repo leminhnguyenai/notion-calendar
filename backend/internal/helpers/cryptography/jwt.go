@@ -15,10 +15,11 @@ type JWTToken struct {
 	Exp                int64
 	GoogleRefreshToken string
 	NotionAccessToken  string
+	NotionId           string
 }
 
-func CreateToken(
-	sub, googleRefreshToken, notionAccessToken, secretKey string,
+func CreateJWTToken(
+	sub, googleRefreshToken, notionAccessToken, notionId, secretKey string,
 ) (string, error) {
 	jti, err := Encrypt(time.Now().String())
 	if err != nil {
@@ -33,6 +34,7 @@ func CreateToken(
 		"exp":                  time.Now().Add(time.Minute * 15).Unix(),
 		"google_refresh_token": googleRefreshToken,
 		"notion_access_token":  notionAccessToken,
+		"notion_id":            notionId,
 	})
 
 	tokenString, err := token.SignedString([]byte(secretKey))
@@ -73,10 +75,27 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 		return nil, fmt.Errorf("Error parsing notion access token")
 	}
 
-	return &JWTToken{iss, sub, jti, iat, exp, google_refresh_token, notion_access_token}, nil
+	notion_id, ok := claims["notion_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Error parsing notion id")
+	}
+
+	return &JWTToken{
+		iss,
+		sub,
+		jti,
+		iat,
+		exp,
+		google_refresh_token,
+		notion_access_token,
+		notion_id,
+	}, nil
 }
 
-func VerifyToken(tokenString string, secretKey string) (jwt.MapClaims, error) {
+func VerifyJWTToken(
+	tokenString string,
+	secretKey string,
+) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(
 		tokenString,
 		func(token *jwt.Token) (interface{}, error) {
