@@ -36,50 +36,48 @@ func (u *UserService) GetUser(
 	if err != nil {
 		return nil, err
 	}
+
 	defer q.Close()
 
-	type Response struct {
-		rows *sql.Rows
-		err  error
-	}
+	errChan := make(chan error)
 
-	resch := make(chan Response)
+	var user *models.User
 
 	go func() {
-		rows, err := q.Query(
-			userId,
-		)
+		rows, err := q.Query(userId)
 		if err != nil {
-			resch <- Response{nil, err}
+			errChan <- err
 		}
 
-		resch <- Response{rows, nil}
+		for rows.Next() {
+			user.NotionId.Valid = true
+
+			if err := rows.Scan(
+				&user.UserId,
+				&user.Email,
+				&user.NotionId,
+				&user.Role,
+				&user.ReAuth,
+			); err != nil {
+				errChan <- err
+			}
+
+			errChan <- nil
+		}
+
+		errChan <- nil
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, api.TimeoutError()
-		case res := <-resch:
-			var user models.User
-			user.NotionId.Valid = true
-
-			for res.rows.Next() {
-				err := res.rows.Scan(
-					&user.UserId,
-					&user.Email,
-					&user.NotionId,
-					&user.Role,
-					&user.ReAuth,
-				)
-				if err != nil {
-					return nil, err
-				}
-				return &user, nil
+		case err := <-errChan:
+			if err != nil {
+				return nil, err
 			}
 
-			// NOTE: If no row is scanned, then return no user as nil
-			return nil, nil
+			return user, nil
 		}
 	}
 }
