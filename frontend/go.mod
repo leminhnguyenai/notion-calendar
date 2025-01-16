@@ -12,5 +12,6 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/dstotijn/go-notion v0.11.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 )

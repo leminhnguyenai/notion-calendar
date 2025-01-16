@@ -13,6 +13,21 @@ import (
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/services"
 )
 
+func GoogleLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func NotionLogout(w http.ResponseWriter, r *http.Request) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -36,6 +51,8 @@ func NotionLogout(w http.ResponseWriter, r *http.Request) error {
 	newJWTTokenString, err := cryptography.CreateJWTToken(
 		values.JWTToken.Sub,
 		values.JWTToken.GoogleRefreshToken,
+		"",
+		"",
 		"",
 		"",
 		os.Getenv("JWT_SECRET_KEY"),

@@ -23,7 +23,12 @@ func ManageCookies(
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	cookiesToDelete := []string{"notion_access_token", "notion_id"}
+	cookiesToDelete := []string{
+		"notion_access_token",
+		"notion_id",
+		"notion_user_name",
+		"notion_user_img",
+	}
 
 	for _, cookieName := range cookiesToDelete {
 		_, err := r.Cookie(cookieName)

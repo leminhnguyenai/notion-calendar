@@ -37,6 +37,7 @@ func main() {
 	api.AddRouter(mux, "/", routes.LandingPageRouter())
 	api.AddRouter(mux, "/users", routes.UserRouter())
 	api.AddRouter(mux, "/dashboard", routes.DashboardRouter())
+	api.AddRouter(mux, "/setting", routes.SettingRouter())
 
 	port := os.Getenv("FRONTEND_PORT")
 

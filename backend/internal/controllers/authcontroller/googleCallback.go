@@ -72,6 +72,8 @@ func saveUserInfo(code string) (string, error) {
 		token.RefreshToken,
 		"",
 		"",
+		"",
+		"",
 		os.Getenv("JWT_SECRET_KEY"),
 	)
 	if err != nil {

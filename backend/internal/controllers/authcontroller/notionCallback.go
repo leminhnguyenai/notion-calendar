@@ -120,10 +120,12 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	notionUser, err := notion.NewClient(notionAccessToken).FindCurrentUser(ctx)
+	botUser, err := notion.NewClient(notionAccessToken).FindCurrentUser(ctx)
 	if err != nil {
 		return err
 	}
+
+	notionUser := botUser.Bot.Owner.User
 
 	encryptedNotionAcessToken, err := cryptography.Encrypt(notionAccessToken)
 	if err != nil {
@@ -149,7 +151,26 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 	})
-	// NOTE: The token will be sent back to the user which will be sent along with user's JWT token to save in the db
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "notion_user_name",
+		Value:    notionUser.Name,
+		Path:     "/",
+		Domain:   "localhost",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "notion_user_img",
+		Value:    notionUser.AvatarURL,
+		Path:     "/",
+		Domain:   "localhost",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	dashboardURL := "http://localhost" + os.Getenv(
 		"FRONTEND_PORT",

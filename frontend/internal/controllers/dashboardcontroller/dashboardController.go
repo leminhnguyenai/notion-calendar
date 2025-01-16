@@ -58,6 +58,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) error {
 		values.JWTToken.GoogleRefreshToken,
 		values.JWTToken.NotionAccessToken,
 		values.JWTToken.NotionId,
+		values.JWTToken.NotionUserName,
+		values.JWTToken.NotionUserImg,
 		os.Getenv("JWT_SECRET_KEY"),
 	)
 	if err != nil {

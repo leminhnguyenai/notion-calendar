@@ -18,6 +18,9 @@ func UserRouter() *api.Router {
 	router.POST("/logout/notion", middlewares.ValidateToken(
 		api.CustomHandlerFunc(usercontrollers.NotionLogout),
 	))
+	router.GET("/logout/google", middlewares.ValidateToken(
+		http.HandlerFunc(usercontrollers.GoogleLogout),
+	))
 
 	return router
 }

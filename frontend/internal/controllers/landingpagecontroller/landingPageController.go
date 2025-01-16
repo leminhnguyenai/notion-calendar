@@ -6,6 +6,11 @@ import (
 )
 
 func LandingPage(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("token")
+	if cookie != nil {
+		http.Redirect(w, r, "/dashboard", http.StatusFound)
+	}
+
 	templ, err := template.ParseFiles(
 		"templates/landingPage.html",
 		"templates/components/widgets.html",

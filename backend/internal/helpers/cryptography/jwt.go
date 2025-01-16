@@ -16,10 +16,12 @@ type JWTToken struct {
 	GoogleRefreshToken string
 	NotionAccessToken  string
 	NotionId           string
+	NotionUserName     string
+	NotionUserImg      string
 }
 
 func CreateJWTToken(
-	sub, googleRefreshToken, notionAccessToken, notionId, secretKey string,
+	sub, googleRefreshToken, notionAccessToken, notionId, notionUserName, notionUserImg, secretKey string,
 ) (string, error) {
 	jti, err := Encrypt(time.Now().String())
 	if err != nil {
@@ -35,6 +37,8 @@ func CreateJWTToken(
 		"google_refresh_token": googleRefreshToken,
 		"notion_access_token":  notionAccessToken,
 		"notion_id":            notionId,
+		"notion_user_name":     notionUserName,
+		"notion_user_img":      notionUserImg,
 	})
 
 	tokenString, err := token.SignedString([]byte(secretKey))
@@ -80,6 +84,16 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 		return nil, fmt.Errorf("Error parsing notion id")
 	}
 
+	notion_user_name, ok := claims["notion_user_name"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Error parsing notion user'sname")
+	}
+
+	notion_user_img, ok := claims["notion_user_img"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Error parsing notion user's image")
+	}
+
 	return &JWTToken{
 		iss,
 		sub,
@@ -89,6 +103,8 @@ func ParseJWTToken(claims jwt.MapClaims) (*JWTToken, error) {
 		google_refresh_token,
 		notion_access_token,
 		notion_id,
+		notion_user_name,
+		notion_user_img,
 	}, nil
 }
 
@@ -117,4 +133,3 @@ func VerifyJWTToken(
 		return nil, err
 	}
 }
-

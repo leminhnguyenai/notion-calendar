@@ -23,7 +23,9 @@ func ValidateToken(next http.Handler) http.Handler {
 
 			jwtTokenStringCookie, err := r.Cookie("token")
 			if err != nil {
-				return api.JWTFailedToRetrieveError()
+				http.Redirect(w, r, "/", http.StatusFound)
+
+				return nil
 			}
 
 			claims, err := cryptography.VerifyJWTToken(
@@ -42,10 +44,13 @@ func ValidateToken(next http.Handler) http.Handler {
 			// These 2 cookies should be sent together
 			// If only either of them is delivered then it is invalid and will be ignored
 			notionTokenCookie, err := r.Cookie("notion_access_token")
-
 			notionIdCookie, err := r.Cookie("notion_id")
+			notionUserNameCookie, err := r.Cookie("notion_user_name")
+			notionUserImgCookie, err := r.Cookie("notion_user_img")
 
-			if notionIdCookie != nil && notionTokenCookie != nil {
+			if notionIdCookie != nil && notionTokenCookie != nil &&
+				notionUserNameCookie != nil &&
+				notionUserImgCookie != nil {
 				db, err := sql.Open("mysql", config.GetDbUrl())
 				if err != nil {
 					return err
@@ -79,6 +84,8 @@ func ValidateToken(next http.Handler) http.Handler {
 
 					values.JWTToken.NotionAccessToken = decryptedNotionAccessToken
 					values.JWTToken.NotionId = notionIdCookie.Value
+					values.JWTToken.NotionUserName = notionUserNameCookie.Value
+					values.JWTToken.NotionUserImg = notionUserImgCookie.Value
 				}
 			}
 
