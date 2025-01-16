@@ -1,16 +1,10 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/controllers/dashboardcontroller"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/api"
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/middlewares"
 )
-
-func serveJS(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "static/scripts/dashboard.js")
-}
 
 func DashboardRouter() *api.Router {
 	router := api.NewRouter()
@@ -21,7 +15,6 @@ func DashboardRouter() *api.Router {
 			api.CustomHandlerFunc(dashboardcontroller.Dashboard),
 		),
 	)
-	router.GET("/script", http.HandlerFunc(serveJS))
 
 	return router
 }

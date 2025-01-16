@@ -1,0 +1,36 @@
+{{ block "notion-logout-button" . }}
+<a
+    hx-post="users/logout/notion"
+    hx-swap="outerHTML"
+    hx-target="this"
+    class="relative p-2 p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer select-none"
+>
+    Remove Notion connection
+</a>
+{{ end }}
+
+{{ block "notion-login-button" . }}
+<a
+    href="users/login/notion"
+    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer select-none"
+>
+    Connect to Notion
+</a>
+{{ end }}
+
+{{ block "google-login-button" . }}
+<a
+    href="users/login/google"
+    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer select-none"
+>
+   Login with Google 
+</a>
+{{ end }}
+
+{{ block "connection-widget" . }}
+<div 
+    class="relative h-36 p-3 bg-[#E9DCC9] text-[#242424] rounded-md hover:bg-[#E9DCC9]/90 active:bg-[#E9DCC9]/70 transition-all duration-200 cursor-pointer select-none"
+>
+    {{ .CalendarName }}
+</div>
+{{ end }}

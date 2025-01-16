@@ -51,7 +51,9 @@ func ValidateToken(next http.Handler) http.Handler {
 					return err
 				}
 
-				user, err := services.NewUserService(db).GetUser(
+				userService := services.NewUserService(db)
+
+				user, err := userService.GetUser(
 					ctx,
 					values.JWTToken.Sub,
 				)
@@ -65,6 +67,14 @@ func ValidateToken(next http.Handler) http.Handler {
 					)
 					if err != nil {
 						return err
+					}
+
+					if !user.NotionId.Valid {
+						if err = userService.SaveUserNotionId(
+							ctx, user.UserId, notionIdCookie.Value,
+						); err != nil {
+							return err
+						}
 					}
 
 					values.JWTToken.NotionAccessToken = decryptedNotionAccessToken

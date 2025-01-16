@@ -27,7 +27,12 @@ func Dashboard(w http.ResponseWriter, r *http.Request) error {
 
 	db, err := sql.Open("mysql", config.GetDbUrl())
 
-	templ, err := template.ParseFiles("templates/dashboard.html")
+	templ, err := template.ParseFiles(
+		"templates/dashboard.html",
+		"templates/components/widgets.html",
+		"static/scripts/htmx.min.js",
+		"static/style/output.css",
+	)
 	if err != nil {
 		return err
 	}

@@ -11,6 +11,14 @@ import (
 	"github.com/lpernett/godotenv"
 )
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	absPath, err := os.Executable()
 	if err != nil {
@@ -23,8 +31,10 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	fs := http.FileServer(http.Dir("./static"))
+
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))
 	api.AddRouter(mux, "/", routes.LandingPageRouter())
-	api.AddRouter(mux, "/static", routes.StaticRouter())
 	api.AddRouter(mux, "/users", routes.UserRouter())
 	api.AddRouter(mux, "/dashboard", routes.DashboardRouter())
 
@@ -32,7 +42,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:    port,
-		Handler: mux,
+		Handler: loggingMiddleware(mux),
 	}
 
 	log.Printf("The server is on http://localhost%s\n", port)

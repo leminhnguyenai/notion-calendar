@@ -25,13 +25,7 @@ func (u *UserService) GetUser(
 	defer cancel()
 
 	q, err := u.db.Prepare(
-		`SELECT 
-           user_id,
-           email,
-           notion_id,
-           role,
-           re_auth 
-		FROM users WHERE user_id = ?`,
+		`SELECT user_id, email, notion_id, role, re_auth FROM users WHERE user_id = ?`,
 	)
 	if err != nil {
 		return nil, err
@@ -50,6 +44,7 @@ func (u *UserService) GetUser(
 		}
 
 		for rows.Next() {
+			user = &models.User{}
 			user.NotionId.Valid = true
 
 			if err := rows.Scan(
@@ -89,8 +84,8 @@ func (u *UserService) CreateNewUser(
 	defer cancel()
 
 	userInputQ, err := u.db.Prepare(
-		`INSERT IGNORE INTO users(user_id, email, role, re_auth)
-             VALUES(?, ?, ?, ?)`)
+		`INSERT IGNORE INTO users(user_id, email, role, re_auth) VALUES(?, ?, ?, ?)`,
+	)
 	if err != nil {
 		return err
 	}
@@ -143,10 +138,7 @@ func (u *UserService) SetReauth(
 	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
-	q, err := u.db.Prepare(`
-	    UPDATE users SET reauth = ?
-	    WHERE user_id = ?
-	`)
+	q, err := u.db.Prepare(`UPDATE users SET reauth = ? WHERE user_id = ?`)
 	if err != nil {
 		return err
 	}
@@ -156,8 +148,7 @@ func (u *UserService) SetReauth(
 	errChan := make(chan error)
 
 	go func() {
-		_, err = q.Exec(reauth, userId)
-		if err != nil {
+		if _, err = q.Exec(reauth, userId); err != nil {
 			errChan <- err
 		}
 
@@ -182,10 +173,7 @@ func (u *UserService) SaveUserNotionId(
 	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
-	q, err := u.db.Prepare(`
-	    UPDATE users SET notion_id = ?
-	    WHERE user_id = ?
-	`)
+	q, err := u.db.Prepare(`UPDATE users SET notion_id = ? WHERE user_id = ?`)
 	if err != nil {
 		return err
 	}
@@ -195,8 +183,7 @@ func (u *UserService) SaveUserNotionId(
 	errChan := make(chan error)
 
 	go func() {
-		_, err := q.Exec(notionId, userId)
-		if err != nil {
+		if _, err := q.Exec(notionId, userId); err != nil {
 			errChan <- err
 		}
 
@@ -220,10 +207,9 @@ func (u *UserService) RemoveUserNotionId(
 	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
 	defer cancel()
 
-	q, err := u.db.Prepare(`
-	    UPDATE users SET notion_id = NULL
-	    WHERE user_id = ?
-	`)
+	q, err := u.db.Prepare(
+		`UPDATE users SET notion_id = NULL WHERE user_id = ?`,
+	)
 	if err != nil {
 		return err
 	}
@@ -233,8 +219,7 @@ func (u *UserService) RemoveUserNotionId(
 	errChan := make(chan error)
 
 	go func() {
-		_, err := q.Exec(userId)
-		if err != nil {
+		if _, err := q.Exec(userId); err != nil {
 			errChan <- err
 		}
 

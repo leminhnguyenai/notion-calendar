@@ -6,7 +6,10 @@ import (
 )
 
 func LandingPage(w http.ResponseWriter, r *http.Request) error {
-	templ, err := template.ParseFiles("templates/landingPage.html")
+	templ, err := template.ParseFiles(
+		"templates/landingPage.html",
+		"templates/components/widgets.html",
+	)
 	if err != nil {
 		return err
 	}

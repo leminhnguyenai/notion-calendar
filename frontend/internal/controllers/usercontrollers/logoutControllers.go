@@ -47,7 +47,7 @@ func NotionLogout(w http.ResponseWriter, r *http.Request) error {
 	w.Write([]byte(`
                 <a
                     href="users/login/notion"
-                    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out"
+                    class="relative p-2 bg-[#F0EAD6] text-[#242424] rounded-md hover:bg-[#F0EAD6]/75 active:bg-[#F0EAD6]/50 transition-all duration-200 ease-in-out cursor-pointer select-none"
                 >
                     Connect to Notion
                 </a>

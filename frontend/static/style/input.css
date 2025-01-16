@@ -7,6 +7,6 @@
         font-family: 'JetBrainsMono';
         font-style: normal;
         font-weight: 400;
-        src: url('/static/fonts/jet-brains-mono.ttf') format('truetype');
+        src: url('/static/fonts/JetBrainsMono.ttf') format('truetype');
     }
 }
