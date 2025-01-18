@@ -3,7 +3,7 @@
     hx-post="users/logout/notion"
     hx-swap="outerHTML"
     hx-target="this"
-    class="relative p-3 text-sm bg-[#343434] text-[#f9f6ee] rounded-md hover:bg-[#282828] active:bg-[#212121] active:text-[#d1cfc9] transition-all duration-200 ease-in-out cursor-pointer select-none"
+    class="std-btn relative p-3 text-light"
 >
     Remove Notion connection
 </a>
@@ -12,7 +12,7 @@
 {{ block "notion-login-button" . }}
 <a
     href="users/login/notion"
-    class="relative p-3 text-sm bg-[#343434] text-[#f9f6ee] rounded-md hover:bg-[#282828] active:bg-[#212121] active:text-[#d1cfc9] transition-all duration-200 ease-in-out cursor-pointer select-none"
+    class="std-btn relative p-3 text-light"
 >
     Connect to Notion
 </a>
@@ -21,7 +21,7 @@
 {{ block "google-login-button" . }}
 <a
     href="users/login/google"
-    class="relative p-3 text-sm bg-[#343434] text-[#f9f6ee] rounded-md hover:bg-[#282828] active:bg-[#212121] active:text-[#d1cfc9] transition-all duration-200 ease-in-out cursor-pointer select-none"
+    class="std-btn relative p-3 text-light"
 >
    Login with Google 
 </a>
@@ -30,9 +30,9 @@
 {{ block "google-logout-button" . }}
 <a 
     href="users/logout/google"
-    class="flex relative text-sm text-[#343434] pl-4 py-2 items-center w-auto bg-[#f9f6ee] rounded-md hover:bg-[#d1cfc9] transition-all duration-200"
+    class="side-bar-btn cursor-pointer select-none text-dark"
 >
-    <div class="relative flex size-6 justify-center items-center">
+    <div class="relative flex size-6 items-center pl-px">
         <object type="image/svg+xml" data="/static/icons/log-out.svg" width="16" height="16">
         </object>
     </div>
@@ -42,10 +42,13 @@
 
 {{ block "setting-button" . }} 
 <a
-    href="/setting"
-    class="flex relative text-sm text-[#343434] pl-4 py-2 items-center w-auto bg-[#f9f6ee] rounded-md hover:bg-[#d1cfc9] transition-all duration-200"
+    hx-get="/setting"
+    hx-target="#content"
+    hx-swap="innerHTML"
+    hx-replace-url="/setting"
+    class="side-bar-btn cursor-pointer select-none text-dark"
 >
-    <div class="relative flex size-6 justify-center items-center">
+    <div class="relative flex size-6 items-center">
         <object type="image/svg+xml" data="/static/icons/setting.svg" width="18" height="18">
         </object> 
     </div>
@@ -53,10 +56,29 @@
 </a>
 {{ end }}
 
+{{ block "add-notion-account-button" . }}
+<a
+    href="users/login/notion"
+    class="std-animation relative flex w-2/3 cursor-pointer items-center justify-center rounded-md bg-light px-4 py-2 text-dark outline outline-1 outline-light-active hover:bg-light-hovered" 
+>
+    <object 
+        class="pointer-events-none mr-4"
+        type="image/svg+xml"
+        data="/static/icons/plus.svg" 
+        width="16" 
+        height="16"
+    >
+    </object>
+    <p class="text-sm text-dark">Add Notion account</p>
+</a>
+{{ end }}
+
 {{ block "connection-widget" . }}
 <div 
-    class="relative h-36 p-3 bg-[#454545] text-[#f9f6ee] text-sm rounded-md hover:bg-[#393939] active:bg-[#303030] active:text-[#d1cfc9] transition-all duration-200 cursor-pointer select-none"
+    class="std-animation relative h-36 cursor-pointer select-none rounded-md bg-dark p-3 text-sm text-light hover:bg-dark-hovered active:bg-dark-active active:text-light-active"
 >
     {{ .CalendarName }}
 </div>
 {{ end }}
+
+

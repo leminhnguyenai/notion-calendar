@@ -2,16 +2,30 @@ package api
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/leminhnguyenai/notion-calendar/frontend/internal/config"
+	"github.com/leminhnguyenai/notion-calendar/frontend/internal/helpers/cryptography"
 )
 
-// Delete all cookies sent from backend and refresh the cookie that contain JWT token
-func ManageCookies(
+func SaveTokenCookie(
 	w http.ResponseWriter,
-	r *http.Request,
-	tokenString string,
-) {
+	jwtToken *cryptography.JWTToken,
+) error {
+	tokenString, err := cryptography.CreateJWTToken(
+		jwtToken.Sub,
+		jwtToken.GoogleRefreshToken,
+		jwtToken.NotionAccessToken,
+		jwtToken.NotionId,
+		jwtToken.NotionUserName,
+		jwtToken.NotionUserImg,
+		os.Getenv("JWT_SECRET_KEY"),
+	)
+
+	if err != nil {
+		return err
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    tokenString,
@@ -23,6 +37,14 @@ func ManageCookies(
 		SameSite: http.SameSiteLaxMode,
 	})
 
+	return nil
+}
+
+// Delete all cookies sent from backend and refresh the cookie that contain JWT token
+func DeleteSensitiveCookies(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	cookiesToDelete := []string{
 		"notion_access_token",
 		"notion_id",

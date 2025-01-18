@@ -10,3 +10,18 @@
         src: url('/static/fonts/JetBrainsMono.ttf') format('truetype');
     }
 }
+
+@layer component {
+    .std-animation {
+        @apply transition-all duration-200 ease-out
+    }
+
+    .std-btn {
+        @apply p-3 text-sm bg-dark text-light rounded-md hover:bg-dark-hovered active:bg-dark-active active:text-light-active std-animation cursor-pointer select-none
+    }
+
+    .side-bar-btn {
+        @apply flex relative text-sm text-dark pl-4 py-2 items-center w-auto bg-light rounded-md hover:bg-light-hovered std-animation
+    }
+}
+

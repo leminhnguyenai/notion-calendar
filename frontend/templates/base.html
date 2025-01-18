@@ -1,0 +1,37 @@
+{{ block "index" . }}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="/static/scripts/htmx.min.js"></script>
+        <link rel="stylesheet" href="/static/style/output.css" />
+        <title>Notion calendar</title>
+    </head>
+    <body class="bg-light font-mono">
+        <nav
+            id="nav-bar"
+            class="fixed top-0 z-20 flex h-14 w-full items-center justify-between bg-light px-6 py-4 text-sm text-dark outline outline-1 outline-light-active"
+        >
+            <a 
+                hx-get="/dashboard" 
+                hx-target="#content" 
+                hx-swap="innerrHTML"
+                hx-replace-url="/dashboard"
+                class="cursor-pointer select-none text-base" 
+            >
+                Dashboard
+            </a>
+        </nav>
+        <nav
+            id="side-bar"
+            class="bg-transparent fixed left-0 top-0 flex h-full w-64 flex-col-reverse gap-y-1 p-6"
+        >
+            {{ template "setting-button" . }}
+            {{ template "google-logout-button" . }} 
+        </nav>
+        <div id="content">{{template "content" . }}</div>
+    </body>
+    <script src="static/scripts/script.js"></script>
+</html>
+{{ end }}

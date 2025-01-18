@@ -5,6 +5,14 @@ module.exports = {
         fontFamily: {
             mono: ['JetBrainsMono'],
         },
+        colors: {
+            light: '#f9f6ee',
+            'light-hovered': '#d1cfc9',
+            'light-active': '#d4d4d4',
+            dark: '#454545',
+            'dark-hovered': '#393939',
+            'dark-active': '#303030',
+        },
     },
     plugins: [],
 }

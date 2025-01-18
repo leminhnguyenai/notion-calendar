@@ -10,7 +10,7 @@ import (
 
 const DbTimeout = time.Millisecond * 500
 
-const CookieMaxAge = 300
+const CookieMaxAge = 900
 
 func Oauth2Config() *oauth2.Config {
 	return &oauth2.Config{

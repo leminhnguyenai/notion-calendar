@@ -1,0 +1,18 @@
+{{ block "content" . }}
+    {{ if .IsNotionConnected }}
+        <div class="mt-14 ml-64 flex-col w-auto h-auto">
+            <p class="text-xl text-[#343434] p-6">My Connections</p>
+            <div 
+                class="relative grid grid-cols-4 grid-flow-row gap-6 px-6 w-auto h-auto z-10 overflow-hidden"
+            >
+                {{ range  .NotionConns }}
+                    {{ template "connection-widget" . }}
+                {{ end }}
+            </div>
+        </div>
+    {{ else }}
+        <div class="flex ml-64 w-auto h-screen items-center justify-center">
+            {{ template "notion-login-button" . }}    
+        </div>
+    {{ end }}
+{{ end }}

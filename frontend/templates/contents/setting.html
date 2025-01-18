@@ -1,0 +1,81 @@
+{{ block "content" . }}
+    <div class="ml-64 mt-14 h-screen w-auto flex-col">
+        <p class="p-6 text-xl text-[#343434]">Setting</p>
+        <div class="my-4 flex pl-6">
+            <div
+                id="account"
+                hx-get="/setting/account"
+                hx-target="#section-panel"
+                hx-swap="innerHTML"
+            >{{ template "section" "Account" }}</div>
+            <div
+                id="appearance"
+                hx-get="/setting/appearance"
+                hx-target="#section-panel"
+                hx-swap="innerHTML"
+            >{{ template "section" "Appearance" }}</div>
+        </div>
+        <div id="section-panel" class="mt-6 pl-4">
+            {{ template "account" . }}
+        </div>
+    </div>
+{{ end }}
+
+{{ block "section" . }}
+    <a
+        class="std-animation relative mr-2 cursor-pointer rounded-full bg-light px-4 py-2 text-sm hover:bg-light-hovered"
+    >
+        {{ . }}
+    </a>
+{{ end }}
+
+{{ block "account" . }}
+        {{ if .IsNotionConnected }}
+            <div
+                class="relative flex w-2/3 items-center justify-between rounded-md bg-light px-4 py-2 text-dark outline outline-1 outline-light-active"
+            >
+                <div class="flex items-center">
+                    <img
+                        class="mr-4 rounded-md"
+                        src="{{ .NotionUserImg }}"
+                        onerror="this.src='static/icons/notion-logo.svg'"
+                        width="24"
+                        height="24"
+                    >
+                    <p class="mr-4 text-sm">{{ .NotionUserName }}</p>
+                </div>
+                <div class="flex items-center">
+                    <div
+                        href="/users/login/notion"
+                        class="std-animation mr-2 flex size-8 cursor-pointer rounded-md bg-light hover:bg-light-hovered"
+                    >
+                        <object
+                            class="pointer-events-none m-auto"
+                            type="image/svg+xml"
+                            data="/static/icons/reload.svg"
+                            width="16"
+                            height="16"
+                        >
+                        </object>
+                    </div>
+                    <div
+                        hx-post="/users/logout/notion"
+                        hx-target="#section-panel"
+                        hx-swap="innerHTML"
+                        class="std-animation flex size-8 cursor-pointer rounded-md bg-light hover:bg-light-hovered"
+                    >
+                        <object
+                            class="pointer-events-none m-auto"
+                            type="image/svg+xml"
+                            data="/static/icons/trash.svg"
+                            width="16"
+                            height="16"
+                        >
+                        </object>
+                    </div>
+                </div>
+        {{ else }}
+            {{ template "add-notion-account-button" . }}
+        {{ end }}
+    </div>
+{{ end }}
