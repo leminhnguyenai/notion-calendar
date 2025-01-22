@@ -3,13 +3,11 @@
         <p class="p-6 text-xl text-dark dark:text-light">Setting</p>
         <div class="my-4 flex pl-6">
             <div
-                id="account"
                 hx-get="/setting/account"
                 hx-target="#section-panel"
                 hx-swap="innerHTML"
             >{{ template "section" "Account" }}</div>
             <div
-                id="display"
                 hx-get="/setting/display"
                 hx-target="#section-panel"
                 hx-swap="innerHTML"
@@ -22,11 +20,19 @@
 {{ end }}
 
 {{ block "section" . }}
-    <a
-        class="relative mr-2 cursor-pointer rounded-full bg-light px-4 py-2 text-sm text-dark transition-all duration-200 ease-out hover:bg-light-hovered dark:bg-dark dark:text-light dark:hover:bg-dark-hovered"
-    >
-        {{ . }}
-    </a>
+<input
+    id="{{ . }}"
+    type="radio"
+    name="section"
+    class="hidden [&:checked+label]:bg-light-hovered dark:[&:checked+label]:bg-dark-hovered"
+    {{ if eq . "Account" }}checked{{ end }}
+/>
+<label
+    class="bg-transparent relative z-20 cursor-pointer select-none rounded-full px-6 py-2 text-dark transition-all duration-200 ease-out dark:text-light"
+    for="{{ . }}"
+>
+    {{ . }}
+</label>
 {{ end }}
 
 {{ block "account" . }}
