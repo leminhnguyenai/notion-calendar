@@ -33,18 +33,21 @@ func (u *UserService) GetUser(
 
 	defer q.Close()
 
-	errChan := make(chan error)
+	type Response struct {
+		user *models.User
+		err  error
+	}
 
-	var user *models.User
+	respch := make(chan Response)
 
 	go func() {
 		rows, err := q.Query(userId)
 		if err != nil {
-			errChan <- err
+			respch <- Response{nil, err}
 		}
 
 		for rows.Next() {
-			user = &models.User{}
+			user := &models.User{}
 			user.NotionId.Valid = true
 
 			if err := rows.Scan(
@@ -54,25 +57,21 @@ func (u *UserService) GetUser(
 				&user.Role,
 				&user.ReAuth,
 			); err != nil {
-				errChan <- err
+				respch <- Response{nil, err}
 			}
 
-			errChan <- nil
+			respch <- Response{user, nil}
 		}
 
-		errChan <- nil
+		respch <- Response{nil, nil}
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, api.TimeoutError()
-		case err := <-errChan:
-			if err != nil {
-				return nil, err
-			}
-
-			return user, nil
+		case res := <-respch:
+			return res.user, res.err
 		}
 	}
 }
@@ -220,6 +219,95 @@ func (u *UserService) RemoveUserNotionId(
 
 	go func() {
 		if _, err := q.Exec(userId); err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return api.TimeoutError()
+		case err := <-errChan:
+			return err
+		}
+	}
+}
+
+func (u *UserService) GetUserSetting(
+	ctx context.Context,
+	userId string,
+) (*models.UserSetting, error) {
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
+	defer cancel()
+
+	q, err := u.db.Prepare(
+		"SELECT user_id, theme FROM settings WHERE user_id = ?",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer q.Close()
+
+	type Response struct {
+		userSetting *models.UserSetting
+		err         error
+	}
+
+	respch := make(chan Response)
+
+	go func() {
+		rows, err := q.Query(userId)
+		if err != nil {
+			respch <- Response{nil, err}
+		}
+
+		for rows.Next() {
+			userSetting := &models.UserSetting{}
+
+			if err = rows.Scan(
+				&userSetting.UserId,
+				&userSetting.Theme,
+			); err != nil {
+				respch <- Response{nil, err}
+			}
+
+			respch <- Response{userSetting, nil}
+		}
+
+		respch <- Response{nil, nil}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, api.TimeoutError()
+		case res := <-respch:
+			return res.userSetting, res.err
+		}
+	}
+}
+
+func (u *UserService) ChangeUserSetting(
+	ctx context.Context,
+	userSetting models.UserSetting,
+) error {
+	ctx, cancel := context.WithTimeout(ctx, config.DbTimeout)
+	defer cancel()
+
+	q, err := u.db.Prepare("UPDATE settings SET theme = ? WHERE user_id = ?")
+	if err != nil {
+		return err
+	}
+
+	defer q.Close()
+
+	errChan := make(chan error)
+
+	go func() {
+		if _, err := q.Exec(userSetting.Theme, userSetting.UserId); err != nil {
 			errChan <- err
 		}
 

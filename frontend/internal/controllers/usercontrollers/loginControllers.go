@@ -17,11 +17,11 @@ func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 		oauth2.ApprovalForce,
 	)
 
-	http.Redirect(w, r, googleConsentUrl, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, googleConsentUrl, http.StatusFound)
 }
 
 func NotionLogin(w http.ResponseWriter, r *http.Request) {
 	notionConsentUrl := os.Getenv("NOTION_CONSENT_URL")
 
-	http.Redirect(w, r, notionConsentUrl, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, notionConsentUrl, http.StatusFound)
 }

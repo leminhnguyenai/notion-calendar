@@ -1,6 +1,6 @@
 {{ block "index" . }}
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,10 +8,10 @@
         <link rel="stylesheet" href="/static/style/output.css" />
         <title>Notion calendar</title>
     </head>
-    <body class="bg-light font-mono">
+    <body class="bg-light font-mono dark:bg-dark ">
         <nav
             id="nav-bar"
-            class="fixed top-0 z-20 flex h-14 w-full items-center justify-between bg-light px-6 py-4 text-sm text-dark outline outline-1 outline-light-active"
+            class="fixed top-0 z-20 flex h-14 w-full items-center justify-between bg-light px-6 py-4 text-sm text-dark outline outline-1 outline-light-active dark:bg-dark dark:text-light"
         >
             <a 
                 hx-get="/dashboard" 
@@ -25,7 +25,7 @@
         </nav>
         <nav
             id="side-bar"
-            class="bg-transparent fixed left-0 top-0 flex h-full w-64 flex-col-reverse gap-y-1 p-6"
+            class="fixed left-0 top-0 flex h-full w-64 flex-col-reverse gap-y-1 bg-light p-6 dark:bg-dark"
         >
             {{ template "setting-button" . }}
             {{ template "google-logout-button" . }} 

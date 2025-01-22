@@ -26,3 +26,16 @@ type NotionConn struct {
 	UserId       string    `json:"user_id"`
 	NextExecTime time.Time `json:"next_exec_time"`
 }
+
+type Theme string
+
+const (
+	Dark   Theme = "dark"
+	Light  Theme = "light"
+	System Theme = "system"
+)
+
+type UserSetting struct {
+	UserId string
+	Theme  Theme
+}

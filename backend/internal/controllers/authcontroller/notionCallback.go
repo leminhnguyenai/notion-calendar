@@ -176,7 +176,7 @@ func NotionAuthCallback(w http.ResponseWriter, r *http.Request) error {
 		"FRONTEND_PORT",
 	) + "/dashboard"
 
-	http.Redirect(w, r, dashboardURL, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, dashboardURL, http.StatusFound)
 
 	return nil
 }

@@ -1,0 +1,29 @@
+{{ block "toggle-switch" . }}
+<div 
+    class="grid-cols-{{ len .Options }} grid rounded-md bg-light text-dark outline outline-1 outline-light-active dark:bg-dark dark:text-light"
+>
+    {{ range $index, $option := .Options }}
+    <input 
+        class="[&:checked~#slider]:translate-x-[{{ call $.Multiply $index 100 }}%] z-20 hidden [&:checked+label]:text-light dark:[&:checked+label]:text-dark-active [&:checked~#slider]:bg-dark dark:[&:checked~#slider]:bg-light"
+        id="{{ $option.Id }}" 
+        name="{{ $.SwitchName }}" 
+        type="radio" 
+        value="{{ $option.Id }}"
+    />
+    <label 
+        {{ range $attribute := .Attributes }}
+        {{ $attribute }} 
+        {{ end }}
+        class="relative z-20 cursor-pointer select-none justify-center px-6 py-2 text-center text-sm transition-all duration-300 ease-in-out"
+        for="{{ $option.Id }}"
+    >
+        {{ $option.Name }}
+    </label>
+    {{ end }}
+    <span 
+        id="slider"
+        class="w-1/{{ len .Options }} absolute left-0 top-0 z-10 block h-full scale-x-95 scale-y-90 transform-gpu rounded-[5px] transition-all duration-300 ease-in-out">
+    </span>
+<div>
+{{ end }}
+

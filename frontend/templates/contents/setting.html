@@ -1,6 +1,6 @@
 {{ block "content" . }}
     <div class="ml-64 mt-14 h-screen w-auto flex-col">
-        <p class="p-6 text-xl text-[#343434]">Setting</p>
+        <p class="p-6 text-xl text-dark dark:text-light">Setting</p>
         <div class="my-4 flex pl-6">
             <div
                 id="account"
@@ -9,13 +9,13 @@
                 hx-swap="innerHTML"
             >{{ template "section" "Account" }}</div>
             <div
-                id="appearance"
-                hx-get="/setting/appearance"
+                id="display"
+                hx-get="/setting/display"
                 hx-target="#section-panel"
                 hx-swap="innerHTML"
-            >{{ template "section" "Appearance" }}</div>
+            >{{ template "section" "Display" }}</div>
         </div>
-        <div id="section-panel" class="mt-6 pl-4">
+        <div id="section-panel" class="mt-6">
             {{ template "account" . }}
         </div>
     </div>
@@ -23,7 +23,7 @@
 
 {{ block "section" . }}
     <a
-        class="std-animation relative mr-2 cursor-pointer rounded-full bg-light px-4 py-2 text-sm hover:bg-light-hovered"
+        class="relative mr-2 cursor-pointer rounded-full bg-light px-4 py-2 text-sm text-dark transition-all duration-200 ease-out hover:bg-light-hovered dark:bg-dark dark:text-light dark:hover:bg-dark-hovered"
     >
         {{ . }}
     </a>
@@ -32,7 +32,7 @@
 {{ block "account" . }}
         {{ if .IsNotionConnected }}
             <div
-                class="relative flex w-2/3 items-center justify-between rounded-md bg-light px-4 py-2 text-dark outline outline-1 outline-light-active"
+                class="relative ml-6 flex w-2/3 items-center justify-between rounded-md bg-light px-4 py-2 text-dark outline outline-1 outline-light-active dark:bg-dark dark:text-light"
             >
                 <div class="flex items-center">
                     <img
@@ -45,9 +45,9 @@
                     <p class="mr-4 text-sm">{{ .NotionUserName }}</p>
                 </div>
                 <div class="flex items-center">
-                    <div
+                    <a
                         href="/users/login/notion"
-                        class="std-animation mr-2 flex size-8 cursor-pointer rounded-md bg-light hover:bg-light-hovered"
+                        class="mr-2 flex size-8 cursor-pointer rounded-md bg-light transition-all duration-200 ease-out hover:bg-light-hovered dark:bg-dark dark:hover:bg-dark-hovered"
                     >
                         <object
                             class="pointer-events-none m-auto"
@@ -57,12 +57,12 @@
                             height="16"
                         >
                         </object>
-                    </div>
+                    </a>
                     <div
                         hx-post="/users/logout/notion"
                         hx-target="#section-panel"
                         hx-swap="innerHTML"
-                        class="std-animation flex size-8 cursor-pointer rounded-md bg-light hover:bg-light-hovered"
+                        class="flex size-8 cursor-pointer rounded-md bg-light transition-all duration-200 ease-out hover:bg-light-hovered dark:bg-dark dark:hover:bg-dark-hovered"
                     >
                         <object
                             class="pointer-events-none m-auto"
@@ -77,5 +77,12 @@
         {{ else }}
             {{ template "add-notion-account-button" . }}
         {{ end }}
+    </div>
+{{ end }}
+
+{{ block "display" . }}
+    <div class="ml-6 flex w-2/3 items-center justify-between">
+        <p class="text-sm text-dark dark:text-light">Appearence</p>
+        <div id="appearence" class="relative">{{ template "toggle-switch" .Appearence }}</div>
     </div>
 {{ end }}
